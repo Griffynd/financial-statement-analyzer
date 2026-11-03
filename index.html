@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Phân tích Báo cáo Tài chính</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -228,6 +226,19 @@
     .table-scroll th, .table-scroll td { min-width: 0; }
     #app { max-width: 100%; padding: 0; }
   }
+
+  /* V13: cung giao dien so ke toan voi trang hoc */
+  :root { --paper: #E9EFE3; --card: #FBFCF7; --ink: #17312A; --ink-soft: #4C6158; --ink-faint: #6A7D74;
+    --emerald: #1B6B50; --emerald-bg: #E1EDDF; --rust: #A5322A; --rust-bg: #F6E6E1;
+    --gold: #9A7416; --gold-bg: #F5E9BE; --line: #C4D2C0; --line-soft: #DBE5D6; --radius: 3px;
+    --serif: 'Sitka Text', Cambria, Georgia, serif; --sans: 'Segoe UI', -apple-system, Arial, sans-serif; --mono: 'Segoe UI', -apple-system, Arial, sans-serif; }
+  .masthead { border-bottom: 3px double var(--ink); }
+  .masthead h1 { color: #123B31; font-weight: 700; }
+  .upload-zone { border: 1px solid var(--line); background: var(--card); text-align: left; padding: 28px 32px; }
+  .upload-zone .big { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: #123B31; margin-bottom: 8px; }
+  .zone-actions { justify-content: flex-start; margin-top: 16px; }
+  .btn { background: #123B31; border-color: #123B31; border-radius: 3px; }
+  .btn.ghost { background: transparent; color: #123B31; }
 </style>
 </head>
 <body>
@@ -245,7 +256,7 @@
     <p>Số liệu mẫu là minh họa, đơn vị VND. Thay bằng số liệu của bạn và giữ cùng kỳ, cùng đơn vị giữa các sheet.</p>
     <div class="zone-actions">
       <button class="btn" id="chooseFileBtn" type="button">Chọn file</button>
-      <a class="btn ghost" href="hoc-hop-nhat_V22.html">Học hợp nhất</a>
+      <a class="btn ghost" href="hoc-hop-nhat_V23.html">Học hợp nhất</a>
 <a class="btn ghost" id="downloadTemplate" href="mau-bao-cao-tai-chinh_V2.xlsx" download>Tải mẫu Excel</a>
       <button class="btn ghost small" id="openHistoryFromZone">Xem lịch sử đã tải</button>
     </div>
