@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phân tích Báo cáo Tài chính</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --paper: #EEF1F5;
+    --card: #FFFFFF;
+    --ink: #1C2B39;
+    --ink-soft: #5B6B78;
+    --ink-faint: #8A97A3;
+    --emerald: #1F7A5C;
+    --emerald-bg: #E6F2ED;
+    --rust: #B84A39;
+    --rust-bg: #F7EAE7;
+    --gold: #B9852E;
+    --gold-bg: #F6EEDD;
+    --line: #DBE1E7;
+    --line-soft: #E9EDF1;
+    --radius: 10px;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 1180px; margin: 0 auto; padding: 18px 14px 60px; }
+
+  /* Header */
+  .masthead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+  }
+  .masthead h1 {
+    font-family: var(--serif); font-weight: 600; font-size: 1.5rem;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .masthead .sub { font-size: 0.78rem; color: var(--ink-soft); font-family: var(--mono); }
+
+  /* Upload zone */
+  .upload-zone {
+    background: var(--card); border: 1.5px dashed var(--line);
+    border-radius: var(--radius); padding: 22px 16px; text-align: center;
+    margin-bottom: 18px; transition: border-color 0.15s;
+  }
+  .upload-zone.drag { border-color: var(--emerald); background: var(--emerald-bg); }
+  .upload-zone p { margin: 4px 0; color: var(--ink-soft); font-size: 0.88rem; }
+  .upload-zone .big { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
+  .btn {
+    display: inline-block; font-family: var(--sans); font-weight: 500; font-size: 0.85rem;
+    padding: 9px 16px; border-radius: 7px; border: 1.5px solid var(--ink);
+    background: var(--ink); color: #fff; cursor: pointer; margin: 4px; text-decoration: none;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.small { padding: 6px 11px; font-size: 0.76rem; }
+  .btn:active { opacity: 0.75; }
+  input[type=file] { display: none; }
+  button, a { touch-action: manipulation; }
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--emerald); outline-offset: 3px;
+  }
+  .btn:hover { background: #34495B; }
+  .btn.ghost:hover, .icon-btn:hover, .pill:not(.active):hover, .tab:hover {
+    background: var(--emerald-bg); color: var(--ink); border-color: var(--emerald);
+  }
+  button:disabled { cursor: wait; opacity: 0.65; }
+  .skip-link { position: absolute; left: 14px; top: -100px; padding: 10px;
+    background: var(--card); z-index: 100; }
+  .skip-link:focus { top: 8px; }
+  h1, h2, h3 { text-wrap: balance; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+  .status-msg { color: var(--ink-soft); font-size: 0.82rem; margin: 8px 0; }
+  .status-msg:empty { display: none; }
+  .error-msg { margin-bottom: 14px; }
+  .table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+  .table-scroll table { min-width: 540px; }
+  .table-scroll th, .table-scroll td { min-width: 100px; overflow-wrap: anywhere; }
+  .table-scroll th:first-child, .table-scroll td:first-child { min-width: 180px; }
+  .table-scroll tbody th { text-align: left; font-weight: 400; padding: 6px 8px;
+    border-bottom: 1px solid var(--line-soft); }
+  .card, .kpi, .company-pills, .masthead > *, .history-item > * { min-width: 0; }
+  .card { overflow-wrap: anywhere; }
+  .kpi .value { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  .masthead .sub { max-width: 100%; overflow-wrap: anywhere; }
+  .chart-link { display: inline-block; color: var(--emerald); font-size: 0.8rem; margin-top: 10px; }
+  .chart-link:hover { color: var(--ink); text-decoration-thickness: 2px; }
+  .chart-frame { position: relative; height: 260px; min-width: 0; }
+  .card.wide .chart-frame { height: 300px; }
+  body.modal-open { overflow: hidden; }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .history-item { flex-wrap: wrap; }
+    .history-item .info { flex: 1 1 100%; }
+    .modal-overlay { padding: 20px 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .upload-zone { transition: none; }
+  }
+  .zone-actions { margin-top: 10px; }
+  .error-msg {
+    background: var(--rust-bg); color: var(--rust); border-radius: 7px;
+    padding: 9px 12px; font-size: 0.8rem; margin-top: 10px; text-align: left; display:none;
+  }
+
+  /* Top controls (company switcher / history / pdf) */
+  .top-controls {
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 14px; justify-content: space-between;
+  }
+  .company-pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .pill {
+    font-family: var(--sans); font-size: 0.78rem; font-weight: 500; color: var(--ink-soft);
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; cursor: pointer; max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+  }
+  .pill.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .pill.add { border-style: dashed; }
+  .top-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    font-family: var(--sans); font-size: 0.76rem; font-weight: 500; color: var(--ink);
+    background: var(--card); border: 1px solid var(--line); border-radius: 7px;
+    padding: 7px 11px; cursor: pointer; white-space: nowrap;
+  }
+  .icon-btn.small { padding: 5px 8px; font-size: 0.72rem; }
+
+  /* Tabs */
+  .tabbar {
+    display: flex; gap: 4px; overflow-x: auto; margin-bottom: 16px;
+    border-bottom: 1px solid var(--line); padding-bottom: 0;
+  }
+  .tab {
+    font-family: var(--sans); font-size: 0.82rem; font-weight: 500; color: var(--ink-soft);
+    padding: 9px 13px; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; background: transparent; border: 0; border-bottom: 2px solid transparent;
+  }
+  .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+  #dashboard { display: none; }
+
+  /* Cards / grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .card h2, .card h3 {
+    font-family: var(--serif); font-weight: 600; font-size: 0.95rem; margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .card.wide { grid-column: 1 / -1; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .kpi {
+    background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .kpi .label { font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 5px; }
+  .kpi .value { font-family: var(--mono); font-size: 1.28rem; font-weight: 600; }
+  .kpi .delta { font-family: var(--mono); font-size: 0.72rem; margin-top: 3px; }
+  .kpi .delta.up { color: var(--emerald); }
+  .kpi .delta.down { color: var(--rust); }
+
+  canvas { max-width: 100%; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    text-align: right; font-family: var(--sans); font-weight: 500; color: var(--ink-soft);
+    font-size: 0.72rem; padding: 6px 8px; border-bottom: 1.5px solid var(--ink);
+  }
+  thead th:first-child { text-align: left; }
+  tbody td { text-align: right; font-family: var(--mono); padding: 6px 8px; border-bottom: 1px solid var(--line-soft); }
+  tbody td:first-child { text-align: left; font-family: var(--sans); color: var(--ink); }
+  tbody tr.section td:first-child { font-weight: 600; padding-top: 12px; }
+  tbody tr.missing td, tbody tr.missing th { color: var(--ink-faint); font-style: italic; }
+
+  .ratio-group { margin-bottom: 18px; }
+  .ratio-group-title {
+    font-family: var(--serif); font-weight: 600; font-size: 1rem; margin: 0 0 8px;
+    border-left: 3px solid var(--gold); padding-left: 9px;
+  }
+  .ratio-note { font-size: 0.74rem; color: var(--ink-soft); margin-top: 8px; line-height: 1.5; }
+
+  .footer-note { text-align: center; color: var(--ink-faint); font-size: 0.72rem; margin-top: 24px; }
+
+  /* History modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(28,43,57,0.45);
+    z-index: 50; align-items: flex-start; justify-content: center; padding: 40px 14px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--radius); max-width: 480px; width: 100%;
+    padding: 18px; max-height: 80vh; overflow-y: auto; overscroll-behavior: contain;
+  }
+  .modal h2 { font-family: var(--serif); margin: 0 0 4px; font-size: 1.05rem; }
+  .modal .modal-sub { font-size: 0.76rem; color: var(--ink-soft); margin-bottom: 12px; }
+  .history-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 10px 4px; border-bottom: 1px solid var(--line-soft);
+  }
+  .history-item .info { min-width: 0; }
+  .history-item .name { font-size: 0.85rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-item .meta { font-size: 0.7rem; color: var(--ink-faint); font-family: var(--mono); }
+  .history-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .empty-hint { color: var(--ink-faint); font-size: 0.82rem; text-align: center; padding: 18px 0; }
+  .modal-close { float: right; }
+
+  @media print {
+    .upload-zone, .tabbar, .top-controls, .modal-overlay, .footer-note, .skip-link, .status-msg, .error-msg, .chart-link { display: none !important; }
+    #dashboard, #dashboard > section { display: block !important; }
+    body { background: #fff; }
+    .card, .kpi { break-inside: avoid; }
+    .table-scroll { overflow: visible; }
+    .table-scroll table { min-width: 0; }
+    .table-scroll th, .table-scroll td { min-width: 0; }
+    #app { max-width: 100%; padding: 0; }
+  }
+
+  /* V13: cung giao dien so ke toan voi trang hoc */
+  :root { --paper: #E9EFE3; --card: #FBFCF7; --ink: #17312A; --ink-soft: #4C6158; --ink-faint: #6A7D74;
+    --emerald: #1B6B50; --emerald-bg: #E1EDDF; --rust: #A5322A; --rust-bg: #F6E6E1;
+    --gold: #9A7416; --gold-bg: #F5E9BE; --line: #C4D2C0; --line-soft: #DBE5D6; --radius: 3px;
+    --serif: 'Sitka Text', Cambria, Georgia, serif; --sans: 'Segoe UI', -apple-system, Arial, sans-serif; --mono: 'Segoe UI', -apple-system, Arial, sans-serif; }
+  .masthead { border-bottom: 3px double var(--ink); }
+  .masthead h1 { color: #123B31; font-weight: 700; }
+  .upload-zone { border: 1px solid var(--line); background: var(--card); text-align: left; padding: 28px 32px; }
+  .upload-zone .big { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: #123B31; margin-bottom: 8px; }
+  .zone-actions { justify-content: flex-start; margin-top: 16px; }
+  .btn { background: #123B31; border-color: #123B31; border-radius: 3px; }
+  .btn.ghost { background: transparent; color: #123B31; }
+
+  /* V18: man hinh bat dau hai loi vao */
+  .upload-zone { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px;
+    padding: 0; border: 0; background: none; }
+  .upload-zone h2 { margin: 0; }
+  .upload-zone.drag { background: none; }
+  .start-file { background: var(--card); border: 2px dashed #7F9A8B; padding: 56px 40px; min-height: 300px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .upload-zone.drag .start-file { border-color: var(--emerald); background: var(--emerald-bg); }
+  .upload-zone .start-file .big { font-size: 1.75rem; line-height: 1.25; margin-bottom: 10px; }
+  .start-file p { max-width: 54ch; font-size: 0.95rem; line-height: 1.55; }
+  .upload-zone .zone-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 8px 20px; margin-top: 22px; }
+  .start-file .btn { margin: 0; padding: 12px 34px; font-size: 1rem; }
+  .text-link { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.9rem; color: #123B31;
+    text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .text-link:hover { color: var(--emerald); }
+  .start-learn { background: #123B31; color: #F3F7EF; padding: 32px 28px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .start-learn h2 { font-family: var(--serif); font-size: 1.4rem; line-height: 1.3; }
+  .upload-zone .start-learn p { color: #CFDDD2; font-size: 0.92rem; line-height: 1.55; margin: 10px 0 20px; }
+  .btn.learn-btn { align-self: flex-start; margin: 0; background: #F3F7EF; border-color: #F3F7EF; color: #123B31; font-weight: 600; padding: 10px 20px; }
+  .btn.learn-btn:hover { background: #fff; }
+  .start-learn a:focus-visible { outline-color: #F3F7EF; }
+  @media (max-width: 760px) {
+    .upload-zone { grid-template-columns: 1fr; }
+    .start-file { padding: 32px 20px; min-height: 0; }
+    .upload-zone .start-file .big { font-size: 1.4rem; }
+    .start-learn { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#app">Đến nội dung chính</a>
+<main id="app" tabindex="-1">
+
+  <div class="masthead">
+    <h1>Phân tích Báo cáo Tài chính</h1>
+    <span class="sub" id="fileLabel">chưa có dữ liệu</span>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <section class="start-file" aria-labelledby="startFileTitle">
+      <h2 class="big" id="startFileTitle">Kéo file báo cáo tài chính vào đây</h2>
+      <p>Nhận Excel hoặc CSV, tách BS, PL, CF hoặc gộp một sheet. Các sheet cần cùng kỳ và cùng đơn vị.</p>
+      <div class="zone-actions">
+        <button class="btn" id="chooseFileBtn" type="button">Chọn file</button>
+        <a class="text-link" id="downloadTemplate" href="mau-bao-cao-tai-chinh_V2.xlsx" download>Tải mẫu Excel theo TT99</a>
+        <button class="text-link" id="openHistoryFromZone" type="button">Xem lịch sử đã tải</button>
+      </div>
+      <input type="file" id="fileInput" name="reportFile" aria-label="File báo cáo tài chính" accept=".xlsx,.xls,.csv">
+    </section>
+    <section class="start-learn" aria-labelledby="startLearnTitle">
+      <h2 id="startLearnTitle">Học hợp nhất báo cáo tài chính</h2>
+      <p>37 bài thực hành trên một tập đoàn mẫu có 11 công ty con và 6 công ty liên kết.</p>
+      <a class="btn learn-btn" href="hoc-hop-nhat_V35.html">Vào bài học</a>
+    </section>
+  </div>
+
+  <div class="status-msg" id="statusMsg" role="status" aria-live="polite"></div>
+  <div class="error-msg" id="errorMsg" role="alert" tabindex="-1"></div>
+
+  <div class="top-controls" id="topControls">
+    <div class="company-pills" id="companyPills"></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="openHistoryBtn"><span aria-hidden="true">🕘</span> Lịch sử</button>
+      <button class="icon-btn" id="exportPdfBtn"><span aria-hidden="true">⬇</span> Xuất PDF</button>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar" role="tablist" aria-label="Các báo cáo" style="display:none;">
+    <button type="button" class="tab active" data-tab="overview" id="tabbtn-overview" role="tab" aria-controls="tab-overview" aria-selected="true" tabindex="0">Tổng quan</button>
+    <button type="button" class="tab" data-tab="balance" id="tabbtn-balance" role="tab" aria-controls="tab-balance" aria-selected="false" tabindex="-1">Tình hình tài chính</button>
+    <button type="button" class="tab" data-tab="income" id="tabbtn-income" role="tab" aria-controls="tab-income" aria-selected="false" tabindex="-1">KQKD</button>
+    <button type="button" class="tab" data-tab="cashflow" id="tabbtn-cashflow" role="tab" aria-controls="tab-cashflow" aria-selected="false" tabindex="-1">LCTT</button>
+    <button type="button" class="tab" data-tab="ratios" id="tabbtn-ratios" role="tab" aria-controls="tab-ratios" aria-selected="false" tabindex="-1">Chỉ số</button>
+    <button type="button" class="tab" data-tab="compare" id="compareTabBtn" role="tab" aria-controls="tab-compare" aria-selected="false" tabindex="-1" style="display:none;">So sánh</button>
+  </div>
+
+  <div id="dashboard">
+    <section id="tab-overview" role="tabpanel" aria-labelledby="tabbtn-overview" tabindex="0"></section>
+    <section id="tab-balance" role="tabpanel" aria-labelledby="tabbtn-balance" tabindex="0" style="display:none;"></section>
+    <section id="tab-income" role="tabpanel" aria-labelledby="tabbtn-income" tabindex="0" style="display:none;"></section>
+    <section id="tab-cashflow" role="tabpanel" aria-labelledby="tabbtn-cashflow" tabindex="0" style="display:none;"></section>
+    <section id="tab-ratios" role="tabpanel" aria-labelledby="tabbtn-ratios" tabindex="0" style="display:none;"></section>
+    <section id="tab-compare" role="tabpanel" aria-labelledby="compareTabBtn" tabindex="0" style="display:none;"></section>
+  </div>
+
+  <div class="footer-note">Các chỉ số được tính tự động dựa trên tên chỉ tiêu nhận diện được trong file. Kiểm tra lại với số liệu gốc trước khi sử dụng cho quyết định quan trọng.</div>
+</main>
+
+<!-- History modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle" aria-describedby="historyDescription">
+    <button class="icon-btn modal-close" id="closeHistoryBtn">Đóng</button>
+    <h2 id="historyTitle">Lịch sử đã tải lên</h2>
+    <div class="modal-sub" id="historyDescription">Lưu trên trình duyệt này. Bấm vào một mục để mở lại, hoặc thêm vào bảng so sánh.</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+// ================= Utility =================
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[ch]));
+}
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function chartAnimation() { return reducedMotion.matches ? false : undefined; }
+reducedMotion.addEventListener('change', () => {
+  Object.values(charts).forEach(chart => { chart.stop(); chart.options.animation = chartAnimation(); chart.update('none'); });
+});
+function normalize(s) {
+  return (s || '').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+function fmtNum(n, digits) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (Math.abs(n) >= 1e9) return (n/1e9).toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:1}) + ' tỷ';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:1}) + ' tr';
+  return n.toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:0});
+}
+function fmtPct(n, digits) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return (n*100).toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:1}) + '%';
+}
+function fmtRatio(n, digits) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:2});
+}
+function fmtDays(n, digits) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toLocaleString('vi-VN', {maximumFractionDigits: digits!==undefined?digits:0}) + ' ngày';
+}
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ================= Line item matcher =================
+// TT99/2025/TT-BTC, Appendix IV: selected B01-DN / B02-DN / B03-DN rows.
+// Source: https://expertis.vn/van-ban/phu-luc-iv-thong-tu-99-2025-tt-btc/
+const TT99_CODES = {
+  BS: { '100': 'currentAssets', '110': 'cash', '130': 'receivables', '140': 'inventory',
+    '280': 'totalAssets', '300': 'totalLiab', '310': 'currentLiab', '311': 'payables', '400': 'equity' },
+  PL: { '10': 'revenue', '11': 'cogs', '20': 'grossProfit', '24': 'borrowingCosts', '30': 'operatingProfit', '60': 'netIncome' },
+  CF: { '20': 'opCashFlow', '30': 'invCashFlow', '40': 'finCashFlow', '50': 'netCashChange' }
+};
+const ITEM_DEFS = {
+  borrowingCosts: ['chi phi di vay'],
+  currentAssets:    ['tai san ngan han', 'current assets'],
+  cash:             ['tien va cac khoan tuong duong tien', 'tien va tuong duong tien', 'tien mat', 'cash and cash equivalents', 'cash'],
+  inventory:        ['hang ton kho', 'inventory', 'inventories'],
+  receivables:      ['phai thu ngan han', 'khoan phai thu', 'accounts receivable'],
+  payables:         ['phai tra nguoi ban', 'phai tra nha cung cap', 'accounts payable'],
+  totalAssets:      ['tong cong tai san', 'tong tai san', 'total assets'],
+  currentLiab:      ['no ngan han', 'current liabilities'],
+  totalLiab:        ['tong no phai tra', 'no phai tra', 'total liabilities'],
+  equity:           ['von chu so huu', 'total equity', 'shareholders equity', 'owners equity'],
+  revenue:          ['doanh thu thuan', 'doanh thu ban hang', 'net revenue', 'net sales', 'revenue'],
+  cogs:             ['gia von hang ban', 'cost of goods sold', 'cost of sales'],
+  grossProfit:      ['loi nhuan gop', 'gross profit'],
+  operatingProfit:  ['loi nhuan thuan tu hoat dong kinh doanh', 'loi nhuan hoat dong', 'operating profit', 'operating income', 'ebit'],
+  interestExpense:  ['chi phi lai vay', 'interest expense'],
+  netIncome:        ['loi nhuan sau thue', 'loi nhuan rong', 'net income', 'net profit'],
+  opCashFlow:       ['luu chuyen tien thuan tu hoat dong kinh doanh', 'operating cash flow', 'cash from operating'],
+  invCashFlow:      ['luu chuyen tien thuan tu hoat dong dau tu', 'investing cash flow', 'cash from investing'],
+  finCashFlow:      ['luu chuyen tien thuan tu hoat dong tai chinh', 'financing cash flow', 'cash from financing'],
+  netCashChange:    ['luu chuyen tien thuan trong ky', 'net change in cash', 'net increase in cash'],
+};
+const ITEM_LABELS = {
+  borrowingCosts: 'Chi phí đi vay',
+  currentAssets: 'Tài sản ngắn hạn', cash: 'Tiền và tương đương tiền', inventory: 'Hàng tồn kho',
+  receivables: 'Phải thu ngắn hạn', payables: 'Phải trả người bán', totalAssets: 'Tổng tài sản', currentLiab: 'Nợ ngắn hạn',
+  totalLiab: 'Tổng nợ phải trả', equity: 'Vốn chủ sở hữu', revenue: 'Doanh thu thuần',
+  cogs: 'Giá vốn hàng bán', grossProfit: 'Lợi nhuận gộp', operatingProfit: 'Lợi nhuận thuần từ hoạt động kinh doanh',
+  interestExpense: 'Chi phí lãi vay', netIncome: 'Lợi nhuận sau thuế', opCashFlow: 'LC tiền từ HĐ kinh doanh',
+  invCashFlow: 'LC tiền từ HĐ đầu tư', finCashFlow: 'LC tiền từ HĐ tài chính', netCashChange: 'Lưu chuyển tiền thuần'
+};
+function matchItem(rowLabel) {
+  const n = normalize(rowLabel);
+  if (!n) return null;
+  let best = null, bestLen = 0;
+  for (const key in ITEM_DEFS) {
+    for (const kw of ITEM_DEFS[key]) {
+      if (n.includes(kw) && kw.length > bestLen) { best = key; bestLen = kw.length; }
+    }
+  }
+  return best;
+}
+function parseNumber(v) {
+  if (typeof v === 'number') return v;
+  if (v === null || v === undefined) return null;
+  let s = v.toString().trim();
+  if (s === '' || s === '-') return null;
+  let neg = false;
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1,-1); }
+  s = s.replace(/[^\d,.\-]/g, '');
+  if (s.includes(',') && s.includes('.')) {
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) { s = s.replace(/\./g, '').replace(',', '.'); }
+    else { s = s.replace(/,/g, ''); }
+  } else if (s.includes(',')) {
+    const parts = s.split(',');
+    if (parts[parts.length-1].length === 3 && parts.length > 1) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+  }
+  const num = parseFloat(s);
+  if (isNaN(num)) return null;
+  return neg ? -num : num;
+}
+
+// ================= State =================
+let companies = [];      // { id, name, periods, dataByItem, rawRows, uploadedAt }
+let activeIdx = -1;
+let charts = {};
+let pendingAddCompany = false;
+
+function activeCompany() { return companies[activeIdx]; }
+function get(key, idx, company) {
+  const c = company || activeCompany();
+  const arr = c.dataByItem[key];
+  if (!arr) return null;
+  const v = arr[idx];
+  return (v === undefined) ? null : v;
+}
+function last(key, company) { const c = company || activeCompany(); return get(key, c.periods.length - 1, c); }
+function prev(key, company) { const c = company || activeCompany(); return c.periods.length > 1 ? get(key, c.periods.length - 2, c) : null; }
+function pctChange(a, b) { if (a===null||b===null||b===0) return null; return (a-b)/Math.abs(b); }
+function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+// ================= File handling =================
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const errorMsg = document.getElementById('errorMsg');
+
+let isReadingFile = false;
+function requestFile(append) {
+  pendingAddCompany = append;
+  fileInput.value = '';
+  fileInput.click();
+}
+document.getElementById('chooseFileBtn').addEventListener('click', () => requestFile(false));
+fileInput.addEventListener('cancel', () => { pendingAddCompany = false; });
+fileInput.addEventListener('change', e => {
+  const append = pendingAddCompany;
+  pendingAddCompany = false;
+  if (e.target.files[0]) handleFile(e.target.files[0], append);
+});
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], false);
+});
+
+function showError(msg) {
+  if (document.getElementById('historyModal').classList.contains('open')) closeHistoryModal();
+  errorMsg.textContent = msg; errorMsg.style.display = 'block'; errorMsg.focus();
+}
+function clearError() { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
+
+async function handleFile(file, append = false) {
+  if (isReadingFile) return;
+  clearError();
+  const name = file.name.toLowerCase();
+  if (!/\.(xlsx|xls|csv)$/.test(name)) { showError('Hãy chọn file .xlsx, .xls hoặc .csv.'); return; }
+  isReadingFile = true;
+  const status = document.getElementById('statusMsg');
+  status.textContent = 'Đang đọc báo cáo…';
+  document.getElementById('chooseFileBtn').disabled = true;
+  const addButton = document.getElementById('addCompanyPill');
+  if (addButton) addButton.disabled = true;
+  try {
+    const displayName = file.name.replace(/\.(xlsx|xls|csv)$/i, '');
+    let statements;
+    if (name.endsWith('.csv')) {
+      const parsed = Papa.parse(await file.text(), { skipEmptyLines: true });
+      if (parsed.errors.length) throw new Error('Không đọc được file CSV. Hãy kiểm tra dấu phân cách và các dấu ngoặc kép.');
+      statements = [parseStatementRows(parsed.data, 'CSV')];
+    } else {
+      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const splitSheets = wb.SheetNames.filter(sheet => ['BS','PL','CF'].includes(sheet.trim().toUpperCase()));
+      const sheetNames = splitSheets.length ? splitSheets : wb.SheetNames.slice(0, 1);
+      statements = sheetNames.map(sheet => parseStatementRows(
+        XLSX.utils.sheet_to_json(wb.Sheets[sheet], { header: 1, raw: true, defval: '' }), sheet));
+    }
+    const company = combineStatements(statements, displayName);
+    addCompany(company, append);
+    saveToHistory(company);
+    status.textContent = `Đã đọc ${displayName}: ${company.periods.length} kỳ báo cáo.`;
+    document.querySelector('.tab[aria-selected="true"]').focus();
+  } catch (err) {
+    status.textContent = '';
+    showError(err instanceof Error ? err.message : 'Không đọc được báo cáo. Hãy thử mẫu Excel.');
+  } finally {
+    isReadingFile = false;
+    document.getElementById('chooseFileBtn').disabled = false;
+    const add = document.getElementById('addCompanyPill');
+    if (add) add.disabled = false;
+    fileInput.value = '';
+  }
+}
+
+function parseStatementRows(rows, sheetName) {
+  rows = rows.filter(r => r && r.some(c => c !== '' && c !== null && c !== undefined));
+  if (rows.length < 2) throw new Error(`Sheet ${sheetName}: cần dòng tiêu đề và ít nhất một dòng chỉ tiêu.`);
+  const headerIndex = rows.findIndex(row => ['ma so','ma chi tieu','chi tieu'].includes(normalize(row[0])));
+  if (headerIndex > 0) rows = rows.slice(headerIndex);
+  const header = rows[0];
+  const hasCode = ['ma so','ma chi tieu'].includes(normalize(header[0]));
+  const labelIndex = hasCode ? 1 : 0;
+  const columns = header.slice(labelIndex + 1).map((value, i) => ({ label: String(value ?? '').trim(), index: i + labelIndex + 1 })).filter(c => c.label);
+  const periods = columns.map(c => c.label);
+  if (!periods.length) throw new Error(`Sheet ${sheetName}: không có cột kỳ báo cáo. Hãy dùng tiêu đề như 2024, 2025.`);
+  if (new Set(periods).size !== periods.length) throw new Error(`Sheet ${sheetName}: kỳ báo cáo bị trùng. Hãy đặt tiêu đề riêng cho mỗi kỳ.`);
+  const dataByItem = {}, rawRows = [];
+  const codeMap = TT99_CODES[sheetName.trim().toUpperCase()];
+  for (const row of rows.slice(1)) {
+    const label = String(row[labelIndex] ?? '').trim();
+    if (!label) continue;
+    const values = columns.map(col => parseNumber(row[col.index]));
+    const code = hasCode ? String(row[0] ?? '').trim() : '';
+    const key = hasCode && code && codeMap ? (codeMap[code] || null) : matchItem(label);
+    rawRows.push({ label, code, values, sheet: sheetName });
+    if (key) dataByItem[key] = values;
+  }
+  return { periods, dataByItem, rawRows, sheetName };
+}
+
+function combineStatements(statements, name) {
+  if (!statements.length) throw new Error('File không có sheet dữ liệu. Hãy tải mẫu Excel để bắt đầu.');
+  const periods = statements[0].periods;
+  const dataByItem = {}, rawRows = [];
+  for (const statement of statements) {
+    if (statement.periods.length !== periods.length || periods.some(p => !statement.periods.includes(p))) {
+      throw new Error(`Sheet ${statement.sheetName}: các kỳ không khớp sheet ${statements[0].sheetName}. Hãy dùng cùng các kỳ trên BS, PL và CF.`);
+    }
+    const indices = periods.map(p => statement.periods.indexOf(p));
+    for (const [key, values] of Object.entries(statement.dataByItem)) {
+      const aligned = indices.map(i => values[i]);
+      if (dataByItem[key] && aligned.some((v, i) => v !== dataByItem[key][i])) {
+        throw new Error(`Chỉ tiêu “${ITEM_LABELS[key]}” có số liệu khác nhau giữa các sheet. Hãy kiểm tra lại.`);
+      }
+      dataByItem[key] = aligned;
+    }
+    rawRows.push(...statement.rawRows.map(row => ({ ...row, values: indices.map(i => row.values[i]) })));
+  }
+  if (!Object.keys(dataByItem).length) throw new Error('Không nhận diện được chỉ tiêu. Hãy dùng tên chỉ tiêu trong mẫu Excel.');
+  return { id: Date.now() + '_' + Math.floor(Math.random()*1000), name: name || 'Công ty', periods, dataByItem, rawRows, uploadedAt: Date.now() };
+}
+
+function addCompany(company, append) {
+  clearError();
+  if (append) { companies.push(company); activeIdx = companies.length - 1; }
+  else { companies = [company]; activeIdx = 0; }
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('topControls').style.display = 'flex';
+  document.getElementById('fileLabel').textContent = companies.length === 1 ? company.name : (companies.length + ' công ty đã tải');
+  renderCompanyPills();
+  document.getElementById('compareTabBtn').style.display = companies.length > 1 ? 'block' : 'none';
+  buildDashboard();
+}
+
+// ================= Company pills / switching =================
+function renderCompanyPills() {
+  const el = document.getElementById('companyPills');
+  let html = companies.map((c, i) =>
+    `<button type="button" class="pill ${i===activeIdx?'active':''}" data-idx="${i}" aria-pressed="${i===activeIdx}" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</button>`
+  ).join('');
+  html += `<button type="button" class="pill add" id="addCompanyPill">+ Thêm để so sánh</button>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.pill[data-idx]').forEach(p => {
+    p.addEventListener('click', () => { activeIdx = parseInt(p.dataset.idx); renderCompanyPills(); buildDashboard(); document.querySelector('.pill.active').focus(); });
+  });
+  document.getElementById('addCompanyPill').addEventListener('click', () => {
+    requestFile(true);
+  });
+}
+
+// ================= Tabs =================
+function selectTab(key, moveFocus = false) {
+  const available = Array.from(document.querySelectorAll('.tab')).filter(t => t.style.display !== 'none');
+  const selected = available.find(t => t.dataset.tab === key) || available[0];
+  document.querySelectorAll('.tab').forEach(tab => {
+    const active = tab === selected;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  document.querySelectorAll('#dashboard > section').forEach(panel => {
+    panel.style.display = panel.id === 'tab-' + selected.dataset.tab ? 'block' : 'none';
+  });
+  if (moveFocus) selected.focus();
+}
+document.getElementById('tabbar').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (tab) selectTab(tab.dataset.tab);
+});
+document.getElementById('tabbar').addEventListener('keydown', e => {
+  const tabs = Array.from(document.querySelectorAll('.tab')).filter(t => t.style.display !== 'none');
+  const index = tabs.indexOf(e.target);
+  if (index < 0) return;
+  let next;
+  if (e.key === 'ArrowRight') next = (index + 1) % tabs.length;
+  else if (e.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+  else if (e.key === 'Home') next = 0;
+  else if (e.key === 'End') next = tabs.length - 1;
+  else return;
+  e.preventDefault(); selectTab(tabs[next].dataset.tab, true);
+});
+document.getElementById('dashboard').addEventListener('click', e => {
+  const link = e.target.closest('[data-show-tab]');
+  if (link) { e.preventDefault(); selectTab(link.dataset.showTab, true); }
+});
+
+// ================= Dashboard building =================
+function buildDashboard() {
+  document.getElementById('tabbar').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'block';
+  destroyCharts();
+  buildOverview();
+  buildStatementTab('balance', ['currentAssets','cash','inventory','receivables','payables','totalAssets','currentLiab','totalLiab','equity']);
+  buildStatementTab('income', ['revenue','cogs','grossProfit','operatingProfit',
+    ...(activeCompany().dataByItem.borrowingCosts ? ['borrowingCosts'] : ['interestExpense']), 'netIncome']);
+  buildStatementTab('cashflow', ['opCashFlow','invCashFlow','finCashFlow','netCashChange']);
+  buildRatios();
+  if (companies.length > 1) buildComparison();
+  else document.getElementById('tab-compare').innerHTML = '';
+  selectTab(document.querySelector('.tab.active')?.dataset.tab || 'overview');
+}
+
+function buildOverview() {
+  const c = activeCompany();
+  const el = document.getElementById('tab-overview');
+  const revenue = last('revenue', c), revenuePrev = prev('revenue', c);
+  const netIncome = last('netIncome', c), netIncomePrev = prev('netIncome', c);
+  const totalAssets = last('totalAssets', c);
+  const equity = last('equity', c);
+
+  function kpiHtml(label, value, deltaVal) {
+    let deltaHtml = '';
+    if (deltaVal !== null && deltaVal !== undefined) {
+      const cls = deltaVal >= 0 ? 'up' : 'down';
+      const sign = deltaVal >= 0 ? '+' : '';
+      deltaHtml = `<div class="delta ${cls}">${sign}${fmtPct(deltaVal)} so với kỳ trước</div>`;
+    }
+    return `<div class="kpi"><div class="label">${label}</div><div class="value">${value}</div>${deltaHtml}</div>`;
+  }
+
+  let kpiRow = '<div class="kpi-row">';
+  kpiRow += kpiHtml('Doanh thu thuần (kỳ mới nhất)', fmtNum(revenue), pctChange(revenue, revenuePrev));
+  kpiRow += kpiHtml('Lợi nhuận sau thuế', fmtNum(netIncome), pctChange(netIncome, netIncomePrev));
+  kpiRow += kpiHtml('Tổng tài sản', fmtNum(totalAssets), null);
+  kpiRow += kpiHtml('Vốn chủ sở hữu', fmtNum(equity), null);
+  kpiRow += '</div>';
+
+  el.innerHTML = kpiRow + `
+    <div class="grid">
+      <div class="card wide"><h2>Doanh thu & Lợi nhuận theo kỳ — ${escapeHtml(c.name)}</h2><div class="chart-frame"><canvas id="chartRevenue" height="90" role="img" aria-label="Doanh thu và lợi nhuận theo kỳ"></canvas></div><a class="chart-link" href="#tab-income" data-show-tab="income">Xem số liệu doanh thu và lợi nhuận</a></div>
+      <div class="card"><h2>Cơ cấu Tài sản – Nguồn vốn (kỳ mới nhất)</h2><div class="chart-frame"><canvas id="chartStructure" height="200" role="img" aria-label="Nợ phải trả và vốn chủ sở hữu kỳ mới nhất"></canvas></div><a class="chart-link" href="#tab-balance" data-show-tab="balance">Xem số liệu nợ và vốn chủ sở hữu</a></div>
+      <div class="card"><h2>Dòng tiền theo hoạt động</h2><div class="chart-frame"><canvas id="chartCash" height="200" role="img" aria-label="Dòng tiền theo hoạt động qua các kỳ"></canvas></div><a class="chart-link" href="#tab-cashflow" data-show-tab="cashflow">Xem số liệu dòng tiền</a></div>
+    </div>`;
+
+  if (c.dataByItem.revenue || c.dataByItem.netIncome) {
+    charts.revenue = new Chart(document.getElementById('chartRevenue'), {
+      type: 'bar',
+      data: {
+        labels: c.periods,
+        datasets: [
+          c.dataByItem.revenue ? { label: 'Doanh thu thuần', data: c.dataByItem.revenue, backgroundColor: '#B9852E' } : null,
+          c.dataByItem.netIncome ? { label: 'Lợi nhuận sau thuế', data: c.dataByItem.netIncome, backgroundColor: '#1F7A5C' } : null,
+        ].filter(Boolean)
+      },
+      options: chartOpts()
+    });
+  }
+  if (totalAssets !== null || last('totalLiab', c) !== null || equity !== null) {
+    const liab = last('totalLiab', c) || 0, eq = equity || 0;
+    charts.structure = new Chart(document.getElementById('chartStructure'), {
+      type: 'doughnut',
+      data: { labels: ['Nợ phải trả', 'Vốn chủ sở hữu'], datasets: [{ data: [liab, eq], backgroundColor: ['#B84A39', '#1F7A5C'] }] },
+      options: { maintainAspectRatio: false, animation: chartAnimation(), plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } } }
+    });
+  }
+  if (c.dataByItem.opCashFlow || c.dataByItem.invCashFlow || c.dataByItem.finCashFlow) {
+    charts.cash = new Chart(document.getElementById('chartCash'), {
+      type: 'bar',
+      data: {
+        labels: c.periods,
+        datasets: [
+          c.dataByItem.opCashFlow ? { label: 'HĐ kinh doanh', data: c.dataByItem.opCashFlow, backgroundColor: '#1F7A5C' } : null,
+          c.dataByItem.invCashFlow ? { label: 'HĐ đầu tư', data: c.dataByItem.invCashFlow, backgroundColor: '#B9852E' } : null,
+          c.dataByItem.finCashFlow ? { label: 'HĐ tài chính', data: c.dataByItem.finCashFlow, backgroundColor: '#B84A39' } : null,
+        ].filter(Boolean)
+      },
+      options: chartOpts()
+    });
+  }
+}
+
+function chartOpts() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: chartAnimation(),
+    plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } },
+    scales: {
+      x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } },
+      y: { ticks: { font: { family: 'IBM Plex Mono', size: 10 }, callback: v => fmtNum(v, 0) }, grid: { color: '#E9EDF1' } }
+    }
+  };
+}
+
+function buildStatementTab(tabId, keys) {
+  const c = activeCompany();
+  const el = document.getElementById('tab-' + tabId);
+  let rows = '';
+  keys.forEach(key => {
+    const arr = c.dataByItem[key];
+    const cls = arr ? '' : 'missing';
+    const cells = c.periods.map((_, idx) => `<td>${arr ? fmtNum(arr[idx]) : '(không có trong file)'}</td>`).join('');
+    rows += `<tr class="${cls}"><th scope="row">${ITEM_LABELS[key]}</th>${cells}</tr>`;
+  });
+  const headerCells = c.periods.map(p => `<th scope="col">${escapeHtml(p)}</th>`).join('');
+  el.innerHTML = `
+    <div class="card wide">
+      <h2>Số liệu nhận diện được — ${escapeHtml(c.name)}</h2>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Bảng số liệu, cuộn ngang để xem các cột"><table><thead><tr><th scope="col">Chỉ tiêu</th>${headerCells}</tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="ratio-note">Các dòng in nghiêng là chỉ tiêu không tìm thấy trong file tải lên — không ảnh hưởng đến các chỉ số không phụ thuộc vào chúng.</p>
+    </div>`;
+}
+
+// ---- Ratio definitions (shared by single-company view and comparison) ----
+const RATIO_DEFS = {
+  currentRatio:  { label: 'Hệ số thanh toán hiện hành', group: 'Khả năng thanh khoản', fmt: fmtRatio, fn: (i,c) => { const ca=get('currentAssets',i,c), cl=get('currentLiab',i,c); return (ca!==null&&cl)?ca/cl:null; }, desc: 'Tài sản ngắn hạn / Nợ ngắn hạn. Đo khả năng trả nợ ngắn hạn; > 1 thường được xem là an toàn.' },
+  quickRatio:    { label: 'Hệ số thanh toán nhanh', group: 'Khả năng thanh khoản', fmt: fmtRatio, fn: (i,c) => { const ca=get('currentAssets',i,c), inv=get('inventory',i,c)||0, cl=get('currentLiab',i,c); return (ca!==null&&cl)?(ca-inv)/cl:null; }, desc: '(Tài sản ngắn hạn − Hàng tồn kho) / Nợ ngắn hạn. Loại trừ hàng tồn kho kém thanh khoản.' },
+  debtEquity:    { label: 'Nợ / Vốn chủ sở hữu', group: 'Đòn bẩy tài chính', fmt: fmtRatio, fn: (i,c) => { const l=get('totalLiab',i,c), e=get('equity',i,c); return (l!==null&&e)?l/e:null; }, desc: 'Đo mức độ sử dụng đòn bẩy tài chính so với vốn tự có.' },
+  debtAssets:    { label: 'Nợ / Tổng tài sản', group: 'Đòn bẩy tài chính', fmt: fmtPct, fn: (i,c) => { const l=get('totalLiab',i,c), a=get('totalAssets',i,c); return (l!==null&&a)?l/a:null; }, desc: 'Tỷ trọng tài sản được tài trợ bằng nợ.' },
+  grossMargin:   { label: 'Biên lợi nhuận gộp', group: 'Khả năng sinh lời', fmt: fmtPct, fn: (i,c) => { const g=get('grossProfit',i,c), r=get('revenue',i,c); return (g!==null&&r)?g/r:null; }, desc: 'Lợi nhuận gộp / Doanh thu thuần.' },
+  netMargin:     { label: 'Biên lợi nhuận ròng', group: 'Khả năng sinh lời', fmt: fmtPct, fn: (i,c) => { const ni=get('netIncome',i,c), r=get('revenue',i,c); return (ni!==null&&r)?ni/r:null; }, desc: 'Lợi nhuận sau thuế / Doanh thu thuần.' },
+  roa:           { label: 'ROA (LNST / Tổng tài sản)', group: 'Khả năng sinh lời', fmt: fmtPct, fn: (i,c) => { const ni=get('netIncome',i,c), a=get('totalAssets',i,c); return (ni!==null&&a)?ni/a:null; }, desc: 'Hiệu quả sử dụng tổng tài sản để tạo lợi nhuận.' },
+  roe:           { label: 'ROE (LNST / VCSH)', group: 'Khả năng sinh lời', fmt: fmtPct, fn: (i,c) => { const ni=get('netIncome',i,c), e=get('equity',i,c); return (ni!==null&&e)?ni/e:null; }, desc: 'Hiệu quả sinh lời trên vốn chủ sở hữu.' },
+  assetTurnover: { label: 'Vòng quay tổng tài sản', group: 'Hiệu quả hoạt động', fmt: fmtRatio, fn: (i,c) => { const r=get('revenue',i,c), a=get('totalAssets',i,c); return (r!==null&&a)?r/a:null; }, desc: 'Doanh thu thuần / Tổng tài sản. Số lần tài sản "quay vòng" tạo doanh thu trong kỳ.' },
+  invTurnover:   { label: 'Vòng quay hàng tồn kho', group: 'Chu kỳ hoạt động', fmt: fmtRatio, fn: (i,c) => { const cogs=get('cogs',i,c), inv=get('inventory',i,c); return (cogs!==null&&inv)?cogs/inv:null; }, desc: 'Giá vốn hàng bán / Hàng tồn kho. Số lần hàng tồn kho được bán ra và thay thế trong kỳ.' },
+  dio:           { label: 'Số ngày tồn kho bình quân (DIO)', group: 'Chu kỳ hoạt động', fmt: fmtDays, fn: (i,c) => { const cogs=get('cogs',i,c), inv=get('inventory',i,c); return (cogs!==null&&inv)?(inv/cogs)*365:null; }, desc: '365 / vòng quay hàng tồn kho. Số ngày trung bình hàng nằm trong kho trước khi bán.' },
+  dso:           { label: 'Số ngày phải thu bình quân (DSO)', group: 'Chu kỳ hoạt động', fmt: fmtDays, fn: (i,c) => { const rec=get('receivables',i,c), r=get('revenue',i,c); return (rec!==null&&r)?(rec/r)*365:null; }, desc: 'Phải thu ngắn hạn / Doanh thu × 365. Số ngày trung bình để thu tiền từ khách hàng.' },
+  dpo:           { label: 'Số ngày phải trả bình quân (DPO)', group: 'Chu kỳ hoạt động', fmt: fmtDays, fn: (i,c) => { const pay=get('payables',i,c), cogs=get('cogs',i,c); return (pay!==null&&cogs)?(pay/cogs)*365:null; }, desc: 'Phải trả người bán / Giá vốn hàng bán × 365. Số ngày trung bình trước khi thanh toán nhà cung cấp.' },
+};
+const RATIO_GROUP_ORDER = ['Khả năng thanh khoản', 'Đòn bẩy tài chính', 'Khả năng sinh lời', 'Hiệu quả hoạt động', 'Chu kỳ hoạt động'];
+
+function buildRatios() {
+  const c = activeCompany();
+  const el = document.getElementById('tab-ratios');
+  const n = c.periods.length;
+  const idxLast = n - 1;
+
+  function groupHtml(groupName) {
+    const items = Object.values(RATIO_DEFS).filter(r => r.group === groupName);
+    const series = it => c.periods.map((_, i) => it.fn(i, c));
+    const anyData = items.some(it => series(it).some(v => v !== null));
+    if (!anyData) return '';
+    let cards = items.map(it => {
+      const vals = series(it);
+      const lastVal = vals[idxLast];
+      const prevVal = n > 1 ? vals[idxLast - 1] : null;
+      const delta = (lastVal!==null && prevVal!==null) ? lastVal - prevVal : null;
+      let deltaHtml = '';
+      if (delta !== null) {
+        const cls = delta >= 0 ? 'up' : 'down';
+        deltaHtml = `<div class="delta ${cls}">${delta>=0?'+':''}${it.fmt(delta)} so với kỳ trước</div>`;
+      }
+      return `<div class="kpi"><div class="label">${it.label}</div><div class="value">${it.fmt(lastVal)}</div>${deltaHtml}</div>`;
+    }).join('');
+    let notes = items.map(it => `<div><strong>${it.label}:</strong> ${it.desc}</div>`).join('');
+    return `<div class="ratio-group">
+      <h3 class="ratio-group-title">${groupName}</h3>
+      <div class="kpi-row">${cards}</div>
+      <div class="ratio-note">${notes}</div>
+    </div>`;
+  }
+
+  const groups = RATIO_GROUP_ORDER.map(groupHtml).join('');
+  el.innerHTML = `<h2 style="font-family:var(--serif);margin:0 0 12px;">${escapeHtml(c.name)}</h2>` +
+    (groups || '<div class="card wide">Không đủ dữ liệu nhận diện được để tính chỉ số. Hãy kiểm tra tên chỉ tiêu và số liệu trong file.</div>');
+}
+
+// ================= Comparison =================
+function buildComparison() {
+  const el = document.getElementById('tab-compare');
+  const metrics = ['currentRatio','debtEquity','grossMargin','netMargin','roa','roe','assetTurnover'];
+  const names = companies.map(c => c.name);
+
+  let rows = `<tr><th scope="row">Doanh thu thuần (kỳ mới nhất)</th>` + companies.map(c => `<td>${fmtNum(last('revenue', c))}</td>`).join('') + `</tr>`;
+  rows += `<tr><th scope="row">Lợi nhuận sau thuế (kỳ mới nhất)</th>` + companies.map(c => `<td>${fmtNum(last('netIncome', c))}</td>`).join('') + `</tr>`;
+  metrics.forEach(key => {
+    const def = RATIO_DEFS[key];
+    rows += `<tr><th scope="row">${def.label}</th>` + companies.map(c => `<td>${def.fmt(def.fn(c.periods.length-1, c))}</td>`).join('') + `</tr>`;
+  });
+  const headerCells = names.map(n => `<th scope="col">${escapeHtml(n)}</th>`).join('');
+
+  el.innerHTML = `
+    <div class="card wide">
+      <h2>So sánh các công ty (kỳ mới nhất của mỗi công ty)</h2><p id="comparisonDataNote" class="ratio-note">Bảng dưới đây chứa số liệu của hai biểu đồ so sánh.</p>
+      <div class="table-scroll" role="region" tabindex="0" aria-label="Bảng số liệu, cuộn ngang để xem các cột"><table><thead><tr><th scope="col">Chỉ tiêu</th>${headerCells}</tr></thead><tbody>${rows}</tbody></table></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h2>Doanh thu & Lợi nhuận sau thuế</h2><div class="chart-frame"><canvas id="chartCompareRevenue" height="200" role="img" aria-label="So sánh doanh thu và lợi nhuận các công ty" aria-describedby="comparisonDataNote"></canvas></div></div>
+      <div class="card"><h2>Biên lợi nhuận & ROE / ROA</h2><div class="chart-frame"><canvas id="chartCompareMargin" height="200" role="img" aria-label="So sánh biên lợi nhuận, ROE và ROA" aria-describedby="comparisonDataNote"></canvas></div></div>
+    </div>`;
+
+  charts.compareRevenue = new Chart(document.getElementById('chartCompareRevenue'), {
+    type: 'bar',
+    data: { labels: names, datasets: [
+      { label: 'Doanh thu thuần', data: companies.map(c => last('revenue', c)), backgroundColor: '#B9852E' },
+      { label: 'Lợi nhuận sau thuế', data: companies.map(c => last('netIncome', c)), backgroundColor: '#1F7A5C' },
+    ]},
+    options: chartOpts()
+  });
+  charts.compareMargin = new Chart(document.getElementById('chartCompareMargin'), {
+    type: 'bar',
+    data: { labels: names, datasets: [
+      { label: 'Biên LN ròng', data: companies.map(c => RATIO_DEFS.netMargin.fn(c.periods.length-1, c)), backgroundColor: '#1F7A5C' },
+      { label: 'ROA', data: companies.map(c => RATIO_DEFS.roa.fn(c.periods.length-1, c)), backgroundColor: '#B9852E' },
+      { label: 'ROE', data: companies.map(c => RATIO_DEFS.roe.fn(c.periods.length-1, c)), backgroundColor: '#B84A39' },
+    ]},
+    options: {
+      responsive: true,
+    maintainAspectRatio: false,
+    animation: chartAnimation(),
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } },
+      scales: {
+        x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } },
+        y: { ticks: { font: { family: 'IBM Plex Mono', size: 10 }, callback: v => fmtPct(v, 0) }, grid: { color: '#E9EDF1' } }
+      }
+    }
+  });
+}
+
+// ================= History (browser localStorage) =================
+// Uses localStorage so upload history persists across visits once this
+// project is deployed as a standalone site (e.g. GitHub Pages). Data
+// never leaves the browser.
+const HISTORY_MANIFEST_KEY = 'fsa_history_manifest';
+const HISTORY_ITEM_PREFIX = 'fsa_history_';
+const HISTORY_LIMIT = 30;
+const storageAvailable = (() => { try { const k = '__fsa_test__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } })();
+
+function readManifest() {
+  if (!storageAvailable) return [];
+  try { const raw = localStorage.getItem(HISTORY_MANIFEST_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+}
+function writeManifest(list) {
+  if (!storageAvailable) return;
+  try { localStorage.setItem(HISTORY_MANIFEST_KEY, JSON.stringify(list)); } catch (e) { /* quota exceeded etc — ignore */ }
+}
+
+function saveToHistory(company) {
+  if (!storageAvailable) return;
+  try {
+    let manifest = readManifest();
+    manifest.unshift({ id: company.id, name: company.name, uploadedAt: company.uploadedAt, periodsCount: company.periods.length });
+    let removed = [];
+    if (manifest.length > HISTORY_LIMIT) { removed = manifest.slice(HISTORY_LIMIT); manifest = manifest.slice(0, HISTORY_LIMIT); }
+    localStorage.setItem(HISTORY_ITEM_PREFIX + company.id, JSON.stringify(company));
+    writeManifest(manifest);
+    removed.forEach(r => { try { localStorage.removeItem(HISTORY_ITEM_PREFIX + r.id); } catch(e) {} });
+  } catch (e) { /* storage best-effort; ignore failures (e.g. quota) */ }
+}
+
+function deleteHistoryItem(id) {
+  const item = readManifest().find(m => m.id === id);
+  if (!window.confirm(`Xoá “${item?.name || 'báo cáo'}” khỏi lịch sử trên trình duyệt này? Bạn cần tải lại file để khôi phục.`)) return;
+  try {
+    localStorage.removeItem(HISTORY_ITEM_PREFIX + id);
+    writeManifest(readManifest().filter(m => m.id !== id));
+  } catch (e) { /* ignore */ }
+  renderHistoryList();
+  document.getElementById('closeHistoryBtn').focus();
+}
+
+function loadHistoryItem(id, append) {
+  try {
+    const raw = localStorage.getItem(HISTORY_ITEM_PREFIX + id);
+    if (!raw) throw new Error('Missing history item');
+    addCompany(JSON.parse(raw), append); closeHistoryModal();
+    document.querySelector('.tab[aria-selected="true"]').focus();
+  } catch (e) { showError('Không tải được mục lịch sử này. Hãy chọn lại file báo cáo gốc.'); }
+}
+
+function renderHistoryList() {
+  const el = document.getElementById('historyList');
+  const manifest = readManifest();
+  if (!storageAvailable) { el.innerHTML = '<div class="empty-hint">Trình duyệt của bạn đang chặn lưu trữ cục bộ nên không thể lưu lịch sử.</div>'; return; }
+  if (manifest.length === 0) { el.innerHTML = '<div class="empty-hint">Chưa có lịch sử nào. Các file bạn tải lên sẽ được lưu tại đây trên trình duyệt này.</div>'; return; }
+  el.innerHTML = manifest.map(m => `
+    <div class="history-item">
+      <div class="info">
+        <div class="name">${escapeHtml(m.name)}</div>
+        <div class="meta">${fmtDate(m.uploadedAt)} · ${m.periodsCount} kỳ</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn small" data-action="open" data-id="${escapeHtml(m.id)}">Mở</button>
+        <button class="icon-btn small" data-action="add" data-id="${escapeHtml(m.id)}">+ So sánh</button>
+        <button class="icon-btn small" data-action="del" data-id="${escapeHtml(m.id)}">Xoá</button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'open') loadHistoryItem(id, false);
+      else if (btn.dataset.action === 'add') loadHistoryItem(id, true);
+      else if (btn.dataset.action === 'del') deleteHistoryItem(id);
+    });
+  });
+}
+
+let historyReturnFocus = null;
+function openHistoryModal() {
+  historyReturnFocus = document.activeElement;
+  renderHistoryList();
+  document.getElementById('historyModal').classList.add('open');
+  document.getElementById('app').inert = true;
+  document.body.classList.add('modal-open');
+  document.getElementById('closeHistoryBtn').focus();
+}
+function closeHistoryModal() {
+  document.getElementById('historyModal').classList.remove('open');
+  document.getElementById('app').inert = false;
+  document.body.classList.remove('modal-open');
+  if (historyReturnFocus?.isConnected && historyReturnFocus.getClientRects().length) historyReturnFocus.focus();
+  else document.querySelector('.tab[aria-selected="true"]')?.focus();
+}
+document.getElementById('historyModal').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); closeHistoryModal(); return; }
+  if (e.key !== 'Tab') return;
+  const buttons = Array.from(document.querySelectorAll('#historyModal button:not(:disabled)'));
+  const first = buttons[0], last = buttons[buttons.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+document.getElementById('openHistoryBtn').addEventListener('click', openHistoryModal);
+document.getElementById('openHistoryFromZone').addEventListener('click', openHistoryModal);
+document.getElementById('closeHistoryBtn').addEventListener('click', closeHistoryModal);
+document.getElementById('historyModal').addEventListener('click', e => { if (e.target.id === 'historyModal') closeHistoryModal(); });
+
+// ================= PDF export (print) =================
+document.getElementById('exportPdfBtn').addEventListener('click', () => { window.print(); });
+
+// ================= Init =================
+renderHistoryList();
+</script>
+</body>
+</html>
