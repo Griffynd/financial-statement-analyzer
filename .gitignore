@@ -1,0 +1,6 @@
+# Ban _Vx cu chua dua len repo: chi de o may (tu 2026-11-11 phien ban ghi bang git tag)
+# File da theo doi tren repo khong bi anh huong.
+*_V*.html
+*_V*.md
+Luyen-tap-hop-nhat_V[1-5].xlsx
+__pycache__/
