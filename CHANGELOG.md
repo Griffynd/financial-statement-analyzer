@@ -4,6 +4,7 @@ Từ v38, mỗi phiên bản là một git tag (`v38`, `v39`, ...). Bài học s
 
 | Bản | Ngày | Thay đổi |
 |---|---|---|
+| v41 | 2026-11-12 | Mỗi bài mở đầu bằng khung "Lý thuyết cơ bản": ý chính, nguyên tắc, bút toán khung (nếu có), căn cứ. Nội dung ở `src/ly-thuyet.js`. |
 | v40 | 2026-11-12 | Bắt đăng nhập trước khi xem cả trang đầu và trang bài học (`src/dang-nhap.js`, `src/dang-nhap.css` dùng chung). Bỏ chế độ học không cần tài khoản. `kiem-tra.py` kiểm thêm JS của trang đầu và chặn secret key. |
 | v39 | 2026-11-12 | Bật đăng nhập: điền Project URL và publishable key của Supabase vào `src/bai-hoc.js`. |
 | v38 | 2026-11-11 | Chuyển sang build từ `src/`: link cố định `hoc-hop-nhat.html`, `kiem-tra.py` (build khớp nguồn, quét lộ dữ liệu thật, cú pháp JS, link hỏng), `phat-hanh.ps1` phát hành một lệnh. Nội dung bài giữ nguyên như V37. |
