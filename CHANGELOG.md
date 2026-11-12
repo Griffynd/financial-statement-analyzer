@@ -4,6 +4,7 @@ Từ v38, mỗi phiên bản là một git tag (`v38`, `v39`, ...). Bài học s
 
 | Bản | Ngày | Thay đổi |
 |---|---|---|
+| v39 | 2026-11-12 | Bật đăng nhập: điền Project URL và publishable key của Supabase vào `src/bai-hoc.js`. |
 | v38 | 2026-11-11 | Chuyển sang build từ `src/`: link cố định `hoc-hop-nhat.html`, `kiem-tra.py` (build khớp nguồn, quét lộ dữ liệu thật, cú pháp JS, link hỏng), `phat-hanh.ps1` phát hành một lệnh. Nội dung bài giữ nguyên như V37. |
 | V37 | 2026-11-11 | Bài 1: phân loại theo hai bước, tính tỷ lệ sở hữu (nhân theo chuỗi) trước rồi xét biểu quyết; thêm các trường hợp biểu quyết cao hơn sở hữu. |
 | V36 | 2026-11-11 | Ô ghi chú cho từng bài; đăng nhập email và mật khẩu, lưu tiến độ và ghi chú theo tài khoản (Supabase, bật khi điền khóa). |
