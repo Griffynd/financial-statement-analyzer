@@ -4,6 +4,8 @@ Từ v38, mỗi phiên bản là một git tag (`v38`, `v39`, ...). Bài học s
 
 | Bản | Ngày | Thay đổi |
 |---|---|---|
+| v43 | 2026-11-12 | Bộ số V6: tên công ty tiếng Việt kèm lĩnh vực (Đại An, Bảo Tín, Cát Tường...), tên phần nâng cao cũng đổi. Ngọc Ánh là ngân hàng con: Đại An gửi tiền, Gia Hưng vay tại ngân hàng, bài 5 thêm đối chiếu và bút toán E18 đến E21. Mỗi bút toán ghi chỉ mục WP; bảng hợp nhất bài 10 có cột Preliminary, AJE, Final như RPT-001. File luyện tập: Luyen-tap-co-ban_V3.xlsx, Luyen-tap-hop-nhat_V8.xlsx. |
+| v42 | 2026-11-12 | Trang đầu có nút Đăng xuất (góc trên phải). |
 | v41 | 2026-11-12 | Mỗi bài mở đầu bằng khung "Lý thuyết cơ bản": ý chính, nguyên tắc, bút toán khung (nếu có), căn cứ. Nội dung ở `src/ly-thuyet.js`. |
 | v40 | 2026-11-12 | Bắt đăng nhập trước khi xem cả trang đầu và trang bài học (`src/dang-nhap.js`, `src/dang-nhap.css` dùng chung). Bỏ chế độ học không cần tài khoản. `kiem-tra.py` kiểm thêm JS của trang đầu và chặn secret key. |
 | v39 | 2026-11-12 | Bật đăng nhập: điền Project URL và publishable key của Supabase vào `src/bai-hoc.js`. |

@@ -11,3 +11,8 @@
   .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
   .cong-the .cong-tb { color: #A5322A; margin: 12px 0 0; min-height: 1.2em; }
   .cong-the .cong-phu { font-size: .8rem; margin: 6px 0 0; }
+  /* Nut dang xuat o trang dau (v42) */
+  #cong-ra { position: fixed; top: 10px; right: 12px; z-index: 50; display: flex; gap: 8px; align-items: center; font: .8rem 'Segoe UI', -apple-system, Arial, sans-serif; background: #FBFCF7; border: 1px solid #C4D2C0; border-radius: 3px; padding: 4px 4px 4px 10px; color: #17312A; }
+  #cong-ra button { font: inherit; padding: 4px 10px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
+  #cong-ra button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
+  @media (max-width: 600px) { #cong-ra span { display: none; } }

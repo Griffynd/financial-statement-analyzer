@@ -284,6 +284,11 @@
   .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
   .cong-the .cong-tb { color: #A5322A; margin: 12px 0 0; min-height: 1.2em; }
   .cong-the .cong-phu { font-size: .8rem; margin: 6px 0 0; }
+  /* Nut dang xuat o trang dau (v42) */
+  #cong-ra { position: fixed; top: 10px; right: 12px; z-index: 50; display: flex; gap: 8px; align-items: center; font: .8rem 'Segoe UI', -apple-system, Arial, sans-serif; background: #FBFCF7; border: 1px solid #C4D2C0; border-radius: 3px; padding: 4px 4px 4px 10px; color: #17312A; }
+  #cong-ra button { font: inherit; padding: 4px 10px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
+  #cong-ra button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
+  @media (max-width: 600px) { #cong-ra span { display: none; } }
 </style>
 </head>
 <body>
@@ -347,14 +352,33 @@ document.addEventListener('submit', async ev => {
     // Trang bai hoc dat ham nay de tai tien do cua tai khoan truoc khi mo trang
     if (typeof window.sauDangNhap === 'function') await window.sauDangNhap();
     moTrang();
+    nutDangXuat();
   } catch (e) {
     tb.textContent = e.message.length > 120 ? 'Không kết nối được máy chủ, thử lại sau.' : e.message;
     nut.disabled = false;
   }
 });
+// v42: trang khong co khung tai khoan rieng (trang dau) thi them nut Dang xuat goc tren
+function nutDangXuat() {
+  if (!sess || document.getElementById('acct') || document.getElementById('cong-ra')) return;
+  const b = document.createElement('div');
+  b.id = 'cong-ra';
+  b.innerHTML = `<span></span><button type="button">Đăng xuất</button>`;
+  b.querySelector('span').textContent = sess.email;
+  b.querySelector('button').addEventListener('click', () => {
+    fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + sess.access_token } }).catch(() => {});
+    // Giong trang bai hoc: xoa tien do tren may de nguoi sau dung chung may khong thay
+    try { localStorage.removeItem('hoc-hop-nhat-tien-do-v31'); } catch (e) {}
+    dropSess();
+    location.reload();
+  });
+  document.body.append(b);
+}
 if (!SB_ON) moTrang();
 else if (!sess) khoaTrang();
 else if (sess.expires_at < Date.now()) freshSess().catch(() => {});
+// Cho trang dung xong moi xet, vi khung #acct cua trang bai hoc nam sau doan script nay
+document.addEventListener('DOMContentLoaded', nutDangXuat);
 </script>
 <a class="skip-link" href="#app">Đến nội dung chính</a>
 <main id="app" tabindex="-1">

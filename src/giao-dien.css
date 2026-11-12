@@ -170,3 +170,6 @@
   .ly-thuyet ul { margin: 0; padding-left: 20px; }
   .ly-thuyet li { margin-bottom: 4px; }
   .ly-thuyet .lt-c { font-size: .8rem; color: var(--ink-soft); margin: 10px 0 0; }
+/* V6: chi muc WP */
+.entry h3 .wp{font-size:.72em;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--wp-bg,#e8eef7);color:var(--wp-fg,#2a4a7a);margin-left:6px;white-space:nowrap}
+.lv{font-weight:400;opacity:.7;margin:0 6px 0 4px;font-size:.82em}
