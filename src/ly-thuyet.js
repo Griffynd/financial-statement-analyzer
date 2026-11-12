@@ -62,6 +62,7 @@ const LY_THUYET = {
       'Lãi cho vay và lãi đi vay nội bộ cũng loại trừ lẫn nhau.',
       'Hai bên ghi lệch nhau thì tìm nguyên nhân trước (tiền hoặc hàng đang đi đường, ghi sai đối tượng, khác thời điểm ghi nhận), điều chỉnh xong mới bù trừ.',
       'Phần còn lại sau bù trừ phải trình bày đúng ngắn hạn và dài hạn.',
+      'Ngân hàng con: tiền gửi của đơn vị trong tập đoàn bù trừ với tiền gửi của khách hàng, khoản ngân hàng cho đơn vị vay bù trừ với khoản vay của đơn vị; thu lãi của ngân hàng là doanh thu, chi lãi là giá vốn (WP 24400.T03).',
     ],
     b: [
       'Bù trừ công nợ: Nợ 336 / Có 136',

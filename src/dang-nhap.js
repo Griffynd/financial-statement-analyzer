@@ -57,11 +57,30 @@ document.addEventListener('submit', async ev => {
     // Trang bai hoc dat ham nay de tai tien do cua tai khoan truoc khi mo trang
     if (typeof window.sauDangNhap === 'function') await window.sauDangNhap();
     moTrang();
+    nutDangXuat();
   } catch (e) {
     tb.textContent = e.message.length > 120 ? 'Không kết nối được máy chủ, thử lại sau.' : e.message;
     nut.disabled = false;
   }
 });
+// v42: trang khong co khung tai khoan rieng (trang dau) thi them nut Dang xuat goc tren
+function nutDangXuat() {
+  if (!sess || document.getElementById('acct') || document.getElementById('cong-ra')) return;
+  const b = document.createElement('div');
+  b.id = 'cong-ra';
+  b.innerHTML = `<span></span><button type="button">Đăng xuất</button>`;
+  b.querySelector('span').textContent = sess.email;
+  b.querySelector('button').addEventListener('click', () => {
+    fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + sess.access_token } }).catch(() => {});
+    // Giong trang bai hoc: xoa tien do tren may de nguoi sau dung chung may khong thay
+    try { localStorage.removeItem('hoc-hop-nhat-tien-do-v31'); } catch (e) {}
+    dropSess();
+    location.reload();
+  });
+  document.body.append(b);
+}
 if (!SB_ON) moTrang();
 else if (!sess) khoaTrang();
 else if (sess.expires_at < Date.now()) freshSess().catch(() => {});
+// Cho trang dung xong moi xet, vi khung #acct cua trang bai hoc nam sau doan script nay
+document.addEventListener('DOMContentLoaded', nutDangXuat);
