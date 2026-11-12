@@ -25,7 +25,7 @@ Web tĩnh trên GitHub Pages, repo công khai. Trả lời tiếng Việt, user 
 ## Bắt buộc
 
 - Không để lọt tên đơn vị thật, mã PV, hệ số nhân, script sinh số, file Excel của user. `kiem-tra.py` quét theo danh sách ở `D:\Claude\PVN - TT99\Data hoc hop nhat\tu-cam.txt` (ở máy).
-- Supabase: chỉ được đặt anon key vào `src/bai-hoc.js` (`SB_URL`, `SB_KEY`), không bao giờ đặt `service_role`.
+- Supabase: `SB_URL`, `SB_KEY` nằm ở `src/dang-nhap.js` (cổng đăng nhập dùng chung cho cả hai trang, từ v40). Chỉ được đặt anon / publishable key, không bao giờ đặt `service_role` / secret key.
 - Không xoá gì khi chưa hỏi. File tạm để ở scratchpad.
 - Máy nằm trong mạng công ty: không tự truy cập website ngoài mà user không nêu tên. Không vào được github.io, không có `gh`.
 - Shell của user là Windows PowerShell 5.1: không dùng `&&`, mỗi lệnh một khối code.

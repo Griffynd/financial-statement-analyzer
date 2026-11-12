@@ -171,8 +171,93 @@
   .pl-row strong { margin-right: 8px; }
   #nav button.locked, .pager .btn:disabled { opacity: .5; cursor: not-allowed; }
 </style>
+<script>try{if(!JSON.parse(localStorage.getItem('hoc-hop-nhat-phien')))throw 0}catch(e){document.documentElement.classList.add('khoa')}</script>
+<style>
+  /* Cong dang nhap (v40): chua dang nhap thi an moi thu tru form */
+  html.khoa body > :not(#cong) { display: none !important; }
+  #cong { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: #E9EFE3; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #17312A; }
+  .cong-the { width: 100%; max-width: 380px; background: #FBFCF7; border: 1px solid #C4D2C0; border-top: 4px solid #123B31; border-radius: 3px; padding: 24px; }
+  .cong-the h1 { font-family: 'Sitka Text', Cambria, Georgia, serif; font-size: 1.35rem; font-weight: 600; margin: 0 0 6px; }
+  .cong-the p { margin: 0 0 14px; font-size: .9rem; color: #4C6158; }
+  .cong-the label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 12px; }
+  .cong-the input { display: block; width: 100%; margin-top: 4px; font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid #C4D2C0; border-radius: 3px; background: #fff; color: #17312A; box-sizing: border-box; }
+  .cong-the button { width: 100%; font: inherit; font-weight: 600; padding: 10px; margin-top: 4px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
+  .cong-the button:disabled { opacity: .6; cursor: wait; }
+  .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
+  .cong-the .cong-tb { color: #A5322A; margin: 12px 0 0; min-height: 1.2em; }
+  .cong-the .cong-phu { font-size: .8rem; margin: 6px 0 0; }
+</style>
 </head>
 <body>
+<script>
+// Cong dang nhap dung chung cho index.html va hoc-hop-nhat.html (v40).
+// Tao boi: Ngo Ba Hung - Ngay: 2026-11-12
+// Chua dang nhap thi chi hien form dang nhap, an toan bo noi dung trang.
+// Luu y: day chi la che noi dung tren trinh duyet; ma nguon van cong khai tren GitHub.
+// Chi duoc dien anon / publishable key, khong bao gio dien service_role / secret key.
+const SB_URL = 'https://xclftmhcuelwavneafnk.supabase.co', SB_KEY = 'sb_publishable_opoCZ-tOdltH9IcNaQwnhg_2JkNGVnA';
+const SB_ON = !!(SB_URL && SB_KEY), SESS_KEY = 'hoc-hop-nhat-phien';
+let sess = null;
+try { sess = JSON.parse(localStorage.getItem(SESS_KEY)); } catch (e) {}
+function keepSess(t, email) {
+  sess = { access_token: t.access_token, refresh_token: t.refresh_token, expires_at: Date.now() + t.expires_in * 1000, user_id: t.user.id, email: email || t.user.email };
+  try { localStorage.setItem(SESS_KEY, JSON.stringify(sess)); } catch (e) {}
+}
+function dropSess() {
+  sess = null;
+  try { localStorage.removeItem(SESS_KEY); } catch (e) {}
+  khoaTrang();
+}
+async function freshSess() {
+  if (sess.expires_at - Date.now() > 60000) return;
+  const t = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: sess.refresh_token }) });
+  if (!t.ok) { dropSess(); throw new Error('Phiên đăng nhập đã hết hạn, mời đăng nhập lại.'); }
+  keepSess(await t.json(), sess.email);
+}
+function khoaTrang() {
+  document.documentElement.classList.add('khoa');
+  if (document.getElementById('cong')) return;
+  const c = document.createElement('div');
+  c.id = 'cong';
+  c.innerHTML = `<form id="cong-form" class="cong-the" autocomplete="on">
+    <h1>Học hợp nhất báo cáo tài chính</h1>
+    <p>Đăng nhập bằng tài khoản được cấp để vào học.</p>
+    <label>Email<input type="email" name="email" autocomplete="username" required></label>
+    <label>Mật khẩu<input type="password" name="pw" autocomplete="current-password" required></label>
+    <button type="submit">Đăng nhập</button>
+    <p class="cong-tb" role="status" aria-live="polite"></p>
+    <p class="cong-phu">Chưa có tài khoản? Liên hệ người quản lý khóa học để được cấp.</p>
+  </form>`;
+  document.body.prepend(c);
+  c.querySelector('[name=email]').focus();
+}
+function moTrang() {
+  document.documentElement.classList.remove('khoa');
+  const c = document.getElementById('cong');
+  if (c) c.remove();
+}
+document.addEventListener('submit', async ev => {
+  if (ev.target.id !== 'cong-form') return;
+  ev.preventDefault();
+  const f = ev.target, tb = f.querySelector('.cong-tb'), nut = f.querySelector('button');
+  tb.textContent = 'Đang đăng nhập...'; nut.disabled = true;
+  try {
+    const email = f.email.value.trim();
+    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: f.pw.value }) });
+    if (!r.ok) throw new Error(r.status === 400 ? 'Sai email hoặc mật khẩu.' : 'Không đăng nhập được (lỗi ' + r.status + ').');
+    keepSess(await r.json(), email);
+    // Trang bai hoc dat ham nay de tai tien do cua tai khoan truoc khi mo trang
+    if (typeof window.sauDangNhap === 'function') await window.sauDangNhap();
+    moTrang();
+  } catch (e) {
+    tb.textContent = e.message.length > 120 ? 'Không kết nối được máy chủ, thử lại sau.' : e.message;
+    nut.disabled = false;
+  }
+});
+if (!SB_ON) moTrang();
+else if (!sess) khoaTrang();
+else if (sess.expires_at < Date.now()) freshSess().catch(() => {});
+</script>
 <div id="app">
   <div class="masthead">
     <h1>Học hợp nhất báo cáo tài chính</h1>
@@ -847,11 +932,8 @@ const quizV = {}, quizDone = new Set();
 let saveOn = true, scrollTimer;
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-11 (V36): ghi chu tung bai, dang nhap va luu tien do theo tai khoan
 const notes = {};
-// Dien Project URL va anon key cua Supabase. De trong thi web chay nhu cu, chi luu tren trinh duyet.
-const SB_URL = 'https://xclftmhcuelwavneafnk.supabase.co', SB_KEY = 'sb_publishable_opoCZ-tOdltH9IcNaQwnhg_2JkNGVnA';
-const SB_ON = !!(SB_URL && SB_KEY), SESS_KEY = 'hoc-hop-nhat-phien';
-let sess = null, cloudTimer, cloudMsg = '';
-try { sess = JSON.parse(localStorage.getItem(SESS_KEY)); } catch (e) {}
+// SB_URL, SB_KEY, sess, keepSess, freshSess, dropSess nam o src/dang-nhap.js (v40)
+let cloudTimer, cloudMsg = '';
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const noteHtml = () => `<div class="card note"><h2>Ghi chú của tôi</h2>
   <textarea data-note="${seenKey(lesson, year)}" aria-label="Ghi chú cho bài này">${esc(notes[seenKey(lesson, year)] || '')}</textarea>
@@ -865,17 +947,6 @@ async function sbFetch(path, opt = {}) {
   if (!r.ok) { const err = new Error(body); err.status = r.status; throw err; }
   return body ? JSON.parse(body) : null;
 }
-function keepSess(t, email) {
-  sess = { access_token: t.access_token, refresh_token: t.refresh_token, expires_at: Date.now() + t.expires_in * 1000, user_id: t.user.id, email: email || t.user.email };
-  try { localStorage.setItem(SESS_KEY, JSON.stringify(sess)); } catch (e) {}
-}
-async function freshSess() {
-  if (sess.expires_at - Date.now() > 60000) return;
-  const t = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: sess.refresh_token }) });
-  if (!t.ok) { dropSess(); throw new Error('Phiên đăng nhập đã hết hạn, mời đăng nhập lại.'); }
-  keepSess(await t.json(), sess.email);
-}
-function dropSess() { sess = null; try { localStorage.removeItem(SESS_KEY); } catch (e) {} drawAcct(); }
 async function cloudPull() {
   await freshSess();
   const rows = await sbFetch('/rest/v1/hoc_tien_do?select=du_lieu&user_id=eq.' + sess.user_id);
@@ -894,11 +965,9 @@ function cloudSave() {
 }
 function drawAcct() {
   const f = document.getElementById('acct');
-  if (!SB_ON) return;
+  if (!SB_ON || !sess) { f.hidden = true; return; }
   f.hidden = false;
-  f.innerHTML = sess
-    ? `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`
-    : `<input type="email" name="email" placeholder="Email" autocomplete="username" required aria-label="Email"><input type="password" name="pw" placeholder="Mật khẩu" autocomplete="current-password" required aria-label="Mật khẩu"><button class="btn">Đăng nhập</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
+  f.innerHTML = `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
 }
 function applyState(p) {
   seen.clear(); off.clear(); labOff.clear(); xoff.clear(); quizDone.clear();
@@ -920,21 +989,15 @@ function applyState(p) {
   (p.quizDone || []).forEach(x => quizDone.add(x));
   return p.scroll || 0;
 }
-document.addEventListener('submit', async ev => {
-  if (ev.target.id !== 'acct') return;
-  ev.preventDefault();
-  const f = ev.target, email = f.email.value.trim();
-  cloudMsg = 'Đang đăng nhập...'; f.querySelector('.msg').textContent = cloudMsg;
+// Cong dang nhap (dang-nhap.js) goi ham nay sau khi dang nhap thanh cong
+window.sauDangNhap = async () => {
   try {
-    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: f.pw.value }) });
-    if (!r.ok) throw new Error(r.status === 400 ? 'Sai email hoặc mật khẩu.' : 'Không đăng nhập được (lỗi ' + r.status + ').');
-    keepSess(await r.json(), email);
     const data = await cloudPull();
-    if (data) { applyState(data); saveProgress(); cloudMsg = 'Đã tải tiến độ của tài khoản.'; }
+    if (data) { applyState(data); saveOn = true; saveProgress(); cloudMsg = 'Đã tải tiến độ của tài khoản.'; }
     else { await cloudPush(stateNow()); cloudMsg = 'Đã đưa tiến độ trên máy này lên tài khoản.'; }
-    drawAcct(); render(true);
-  } catch (e) { if (sess && !e.message.startsWith('Sai')) dropSess(); cloudMsg = e.message.length > 120 ? 'Không tải được tiến độ của tài khoản.' : e.message; drawAcct(); }
-});
+  } catch (e) { cloudMsg = 'Không tải được tiến độ của tài khoản.'; }
+  drawAcct(); render(true);
+};
 document.addEventListener('click', async ev => {
   if (ev.target.id !== 'logout') return;
   clearTimeout(cloudTimer);

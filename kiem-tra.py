@@ -55,23 +55,30 @@ for f in git_files():
     if os.path.basename(f).startswith('gen_') or f.endswith('tu-cam.txt'):
         loi.append(f'File chi de o may bi dua vao repo: {f}')
 
-# 3. Cu phap JavaScript trong trang bai hoc
+# 3. Cu phap JavaScript, kiem rieng tung trang.
+# Sua boi Ngo Ba Hung - Ngay: 2026-11-12 (v40): kiem ca index.html; cac <script> cua mot trang
+# dung chung pham vi toan cuc nen ghep lai de bat ca loi khai bao trung ten.
 html = open(os.path.join(ROOT, 'hoc-hop-nhat.html'), encoding='utf-8').read()
 js = '\n'.join(re.findall(r'<script>(.*?)</script>', html, re.S))
-with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as tf:
-    tf.write(js)
-try:
-    r = subprocess.run(['node', '--check', tf.name], capture_output=True, text=True)
-    if r.returncode:
-        loi.append('Loi cu phap JS: ' + r.stderr.strip()[:300])
-except FileNotFoundError:
-    print('CANH BAO: khong co node, bo qua kiem tra cu phap JS.')
-finally:
-    os.unlink(tf.name)
+idx_js = '\n'.join(re.findall(r'<script>(.*?)</script>', open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read(), re.S))
+for ten_trang, ma in (('hoc-hop-nhat.html', js), ('index.html', idx_js)):
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as tf:
+        tf.write(ma)
+    try:
+        r = subprocess.run(['node', '--check', tf.name], capture_output=True, text=True)
+        if r.returncode:
+            loi.append(f'Loi cu phap JS trong {ten_trang}: ' + r.stderr.strip()[:300])
+    except FileNotFoundError:
+        print('CANH BAO: khong co node, bo qua kiem tra cu phap JS.')
+        break
+    finally:
+        os.unlink(tf.name)
 
-# 4. Khoa Supabase: chi duoc la anon key, khong duoc la service_role
-for k in re.findall(r"SB_KEY = '([^']*)'", js):
-    if k:
+# 4. Khoa Supabase: chi duoc la anon / publishable key, khong duoc la service_role / secret key
+for k in re.findall(r"SB_KEY = '([^']*)'", js + idx_js):
+    if k.startswith('sb_secret_'):
+        loi.append('SB_KEY la secret key, phai doi sang publishable key va Roll khoa bi mat tren Supabase')
+    elif k:
         try:
             import base64
             p = json.loads(base64.urlsafe_b64decode(k.split('.')[1] + '=='))

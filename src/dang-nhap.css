@@ -1,0 +1,13 @@
+  /* Cong dang nhap (v40): chua dang nhap thi an moi thu tru form */
+  html.khoa body > :not(#cong) { display: none !important; }
+  #cong { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: #E9EFE3; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #17312A; }
+  .cong-the { width: 100%; max-width: 380px; background: #FBFCF7; border: 1px solid #C4D2C0; border-top: 4px solid #123B31; border-radius: 3px; padding: 24px; }
+  .cong-the h1 { font-family: 'Sitka Text', Cambria, Georgia, serif; font-size: 1.35rem; font-weight: 600; margin: 0 0 6px; }
+  .cong-the p { margin: 0 0 14px; font-size: .9rem; color: #4C6158; }
+  .cong-the label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 12px; }
+  .cong-the input { display: block; width: 100%; margin-top: 4px; font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid #C4D2C0; border-radius: 3px; background: #fff; color: #17312A; box-sizing: border-box; }
+  .cong-the button { width: 100%; font: inherit; font-weight: 600; padding: 10px; margin-top: 4px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
+  .cong-the button:disabled { opacity: .6; cursor: wait; }
+  .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
+  .cong-the .cong-tb { color: #A5322A; margin: 12px 0 0; min-height: 1.2em; }
+  .cong-the .cong-phu { font-size: .8rem; margin: 6px 0 0; }
