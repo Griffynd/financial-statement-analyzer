@@ -163,3 +163,10 @@
   .pl-row .mcq-o { display: inline-block; width: auto; margin: 4px 6px 0 0; }
   .pl-row strong { margin-right: 8px; }
   #nav button.locked, .pager .btn:disabled { opacity: .5; cursor: not-allowed; }
+  /* Ly thuyet co ban o dau moi bai (v41) */
+  .ly-thuyet { border-left: 4px solid var(--emerald); }
+  .ly-thuyet .lt-y { font-weight: 600; margin: 0 0 8px; }
+  .ly-thuyet h3 { font-size: .9rem; margin: 12px 0 4px; }
+  .ly-thuyet ul { margin: 0; padding-left: 20px; }
+  .ly-thuyet li { margin-bottom: 4px; }
+  .ly-thuyet .lt-c { font-size: .8rem; color: var(--ink-soft); margin: 10px 0 0; }

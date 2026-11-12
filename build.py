@@ -15,7 +15,7 @@ def doc(ten):
 
 def build():
     du_lieu = json.loads(doc('du-lieu.json'))
-    js = 'const D = ' + json.dumps(du_lieu, ensure_ascii=False) + ';\n' + doc('bai-hoc.js')
+    js = 'const D = ' + json.dumps(du_lieu, ensure_ascii=False) + ';\n' + doc('ly-thuyet.js') + doc('bai-hoc.js')  # v41: them ly thuyet co ban
     trang = doc('trang.html').replace('{{CSS}}', doc('giao-dien.css'), 1).replace('{{JS}}', js, 1)
     # Sua boi Ngo Ba Hung - Ngay: 2026-11-12 (v40): cong dang nhap cho ca hai trang
     # Script nho trong <head> an trang ngay tu dau neu chua dang nhap, tranh loe noi dung.

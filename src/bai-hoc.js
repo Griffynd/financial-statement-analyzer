@@ -770,7 +770,7 @@ function render(focus) {
   document.getElementById('nav').innerHTML = LESSONS.map((l, i) => `${l.g ? `<div class="group">${l.g}</div>` : ''}<button type="button" data-l="${i}" aria-current="${i === lesson}"${i && !pl1Done() ? ' class="locked" aria-disabled="true" title="Phân loại xong ở bài 1 để mở"' : ''}>${i + 1}. ${l.t}</button>`).join('') + `<p class="saved">${sess ? 'Tiến độ lưu theo tài khoản.' : 'Tiến độ tự lưu trên trình duyệt này.'}</p><button type="button" id="reset">Xóa tiến độ đã lưu</button>`;
   const main = document.getElementById('main');
   seen.add(seenKey(lesson, year));
-  main.innerHTML = yearBanner() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
+  main.innerHTML = lyThuyet() + yearBanner() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
     <button class="btn ghost" data-l="${lesson - 1}" ${lesson ? '' : 'hidden'}>← Bài trước</button>
     <button class="btn" data-l="${lesson + 1}" ${lesson < LESSONS.length - 1 ? '' : 'hidden'} ${lesson === 0 && !pl1Done() ? 'disabled' : ''}>${lesson === 0 && !pl1Done() ? 'Phân loại đúng hết để sang bài sau' : 'Bài sau →'}</button></div>`;
   renderSheet();
