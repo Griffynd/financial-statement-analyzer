@@ -17,7 +17,15 @@ def build():
     du_lieu = json.loads(doc('du-lieu.json'))
     js = 'const D = ' + json.dumps(du_lieu, ensure_ascii=False) + ';\n' + doc('bai-hoc.js')
     trang = doc('trang.html').replace('{{CSS}}', doc('giao-dien.css'), 1).replace('{{JS}}', js, 1)
-    return {'hoc-hop-nhat.html': trang, 'index.html': doc('index.html')}
+    # Sua boi Ngo Ba Hung - Ngay: 2026-11-12 (v40): cong dang nhap cho ca hai trang
+    # Script nho trong <head> an trang ngay tu dau neu chua dang nhap, tranh loe noi dung.
+    dau = ("<script>try{if(!JSON.parse(localStorage.getItem('hoc-hop-nhat-phien')))throw 0}"
+           "catch(e){document.documentElement.classList.add('khoa')}</script>\n"
+           "<style>\n" + doc('dang-nhap.css') + "</style>")
+    than = '<script>\n' + doc('dang-nhap.js') + '</script>'
+    cong = lambda t: t.replace('{{CONG_DAU}}', dau, 1).replace('{{CONG_THAN}}', than, 1)
+    #--- Ket thuc sua Ngo Ba Hung 2026-11-12 (v40) ---*
+    return {'hoc-hop-nhat.html': cong(trang), 'index.html': cong(doc('index.html'))}
 
 
 def main():

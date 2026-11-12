@@ -658,11 +658,8 @@ const quizV = {}, quizDone = new Set();
 let saveOn = true, scrollTimer;
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-11 (V36): ghi chu tung bai, dang nhap va luu tien do theo tai khoan
 const notes = {};
-// Dien Project URL va anon key cua Supabase. De trong thi web chay nhu cu, chi luu tren trinh duyet.
-const SB_URL = 'https://xclftmhcuelwavneafnk.supabase.co', SB_KEY = 'sb_publishable_opoCZ-tOdltH9IcNaQwnhg_2JkNGVnA';
-const SB_ON = !!(SB_URL && SB_KEY), SESS_KEY = 'hoc-hop-nhat-phien';
-let sess = null, cloudTimer, cloudMsg = '';
-try { sess = JSON.parse(localStorage.getItem(SESS_KEY)); } catch (e) {}
+// SB_URL, SB_KEY, sess, keepSess, freshSess, dropSess nam o src/dang-nhap.js (v40)
+let cloudTimer, cloudMsg = '';
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const noteHtml = () => `<div class="card note"><h2>Ghi chú của tôi</h2>
   <textarea data-note="${seenKey(lesson, year)}" aria-label="Ghi chú cho bài này">${esc(notes[seenKey(lesson, year)] || '')}</textarea>
@@ -676,17 +673,6 @@ async function sbFetch(path, opt = {}) {
   if (!r.ok) { const err = new Error(body); err.status = r.status; throw err; }
   return body ? JSON.parse(body) : null;
 }
-function keepSess(t, email) {
-  sess = { access_token: t.access_token, refresh_token: t.refresh_token, expires_at: Date.now() + t.expires_in * 1000, user_id: t.user.id, email: email || t.user.email };
-  try { localStorage.setItem(SESS_KEY, JSON.stringify(sess)); } catch (e) {}
-}
-async function freshSess() {
-  if (sess.expires_at - Date.now() > 60000) return;
-  const t = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: sess.refresh_token }) });
-  if (!t.ok) { dropSess(); throw new Error('Phiên đăng nhập đã hết hạn, mời đăng nhập lại.'); }
-  keepSess(await t.json(), sess.email);
-}
-function dropSess() { sess = null; try { localStorage.removeItem(SESS_KEY); } catch (e) {} drawAcct(); }
 async function cloudPull() {
   await freshSess();
   const rows = await sbFetch('/rest/v1/hoc_tien_do?select=du_lieu&user_id=eq.' + sess.user_id);
@@ -705,11 +691,9 @@ function cloudSave() {
 }
 function drawAcct() {
   const f = document.getElementById('acct');
-  if (!SB_ON) return;
+  if (!SB_ON || !sess) { f.hidden = true; return; }
   f.hidden = false;
-  f.innerHTML = sess
-    ? `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`
-    : `<input type="email" name="email" placeholder="Email" autocomplete="username" required aria-label="Email"><input type="password" name="pw" placeholder="Mật khẩu" autocomplete="current-password" required aria-label="Mật khẩu"><button class="btn">Đăng nhập</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
+  f.innerHTML = `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
 }
 function applyState(p) {
   seen.clear(); off.clear(); labOff.clear(); xoff.clear(); quizDone.clear();
@@ -731,21 +715,15 @@ function applyState(p) {
   (p.quizDone || []).forEach(x => quizDone.add(x));
   return p.scroll || 0;
 }
-document.addEventListener('submit', async ev => {
-  if (ev.target.id !== 'acct') return;
-  ev.preventDefault();
-  const f = ev.target, email = f.email.value.trim();
-  cloudMsg = 'Đang đăng nhập...'; f.querySelector('.msg').textContent = cloudMsg;
+// Cong dang nhap (dang-nhap.js) goi ham nay sau khi dang nhap thanh cong
+window.sauDangNhap = async () => {
   try {
-    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: f.pw.value }) });
-    if (!r.ok) throw new Error(r.status === 400 ? 'Sai email hoặc mật khẩu.' : 'Không đăng nhập được (lỗi ' + r.status + ').');
-    keepSess(await r.json(), email);
     const data = await cloudPull();
-    if (data) { applyState(data); saveProgress(); cloudMsg = 'Đã tải tiến độ của tài khoản.'; }
+    if (data) { applyState(data); saveOn = true; saveProgress(); cloudMsg = 'Đã tải tiến độ của tài khoản.'; }
     else { await cloudPush(stateNow()); cloudMsg = 'Đã đưa tiến độ trên máy này lên tài khoản.'; }
-    drawAcct(); render(true);
-  } catch (e) { if (sess && !e.message.startsWith('Sai')) dropSess(); cloudMsg = e.message.length > 120 ? 'Không tải được tiến độ của tài khoản.' : e.message; drawAcct(); }
-});
+  } catch (e) { cloudMsg = 'Không tải được tiến độ của tài khoản.'; }
+  drawAcct(); render(true);
+};
 document.addEventListener('click', async ev => {
   if (ev.target.id !== 'logout') return;
   clearTimeout(cloudTimer);
