@@ -1,0 +1,22 @@
+# Goi Supabase 2 lan/tuan de du an free khong bi tam dung (Supabase dung sau 7 ngay khong hoat dong).
+# Chay tren may chu GitHub, khong chay tren may cong ty.
+# Key la publishable key, da cong khai san trong src/dang-nhap.js.
+name: Giu Supabase hoat dong
+
+on:
+  schedule:
+    - cron: "0 1 * * 1,4"   # 08:00 gio VN thu Hai va thu Nam
+  workflow_dispatch:          # cho phep bam chay tay de thu
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Goi Auth va REST
+        env:
+          SB_URL: https://xclftmhcuelwavneafnk.supabase.co
+          SB_KEY: sb_publishable_opoCZ-tOdltH9IcNaQwnhg_2JkNGVnA
+        run: |
+          curl -fsS "$SB_URL/auth/v1/health" -H "apikey: $SB_KEY"
+          echo
+          curl -sS -o /dev/null -w "REST: HTTP %{http_code}\n" "$SB_URL/rest/v1/" -H "apikey: $SB_KEY"
