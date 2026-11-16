@@ -19,4 +19,4 @@ jobs:
         run: |
           curl -fsS "$SB_URL/auth/v1/health" -H "apikey: $SB_KEY"
           echo
-          curl -sS -o /dev/null -w "REST: HTTP %{http_code}\n" "$SB_URL/rest/v1/" -H "apikey: $SB_KEY"
+          curl -fsS "$SB_URL/rest/v1/keepalive?select=id&limit=1" -H "apikey: $SB_KEY"
