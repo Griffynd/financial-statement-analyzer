@@ -79,8 +79,9 @@ function nutDangXuat() {
     dropSess();
     location.reload();
   });
-  // v44: dat dau trang thay vi noi de khong de len tieu de tren dien thoai
-  document.body.prepend(b);
+  // v44: nam trong thanh tieu de (khong noi) de khong de len chu; khong co thanh tieu de thi dat dau trang
+  const m = document.querySelector('.masthead');
+  m ? m.append(b) : document.body.prepend(b);
 }
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v44): tu dang xuat sau 30 phut khong thao tac
 // Moc thao tac cuoi luu chung cho moi tab tren may. Khong day tien do khi tu dang xuat:

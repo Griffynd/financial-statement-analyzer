@@ -219,6 +219,8 @@ details.chon[open] > summary { border-bottom: 1px solid var(--line-soft); margin
   #cong-ra { position: fixed; top: 10px; right: 12px; z-index: 50; display: flex; gap: 8px; align-items: center; font: .8rem 'Segoe UI', -apple-system, Arial, sans-serif; background: #FBFCF7; border: 1px solid #C4D2C0; border-radius: 3px; padding: 4px 4px 4px 10px; color: #17312A; }
   #cong-ra button { font: inherit; padding: 4px 10px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
   #cong-ra button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
+  .masthead #cong-ra { position: static; align-self: center; }
+  .masthead:has(#cong-ra) > h1 { margin-right: auto; }
   /* v44: dien thoai: nut nam tren tieu de, khong noi de len chu */
   @media (max-width: 600px) {
     #cong-ra { position: static; justify-content: flex-end; border: 0; background: none; padding: 8px 16px 0; }
@@ -309,8 +311,9 @@ function nutDangXuat() {
     dropSess();
     location.reload();
   });
-  // v44: dat dau trang thay vi noi de khong de len tieu de tren dien thoai
-  document.body.prepend(b);
+  // v44: nam trong thanh tieu de (khong noi) de khong de len chu; khong co thanh tieu de thi dat dau trang
+  const m = document.querySelector('.masthead');
+  m ? m.append(b) : document.body.prepend(b);
 }
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v44): tu dang xuat sau 30 phut khong thao tac
 // Moc thao tac cuoi luu chung cho moi tab tren may. Khong day tien do khi tu dang xuat:
