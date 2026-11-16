@@ -37,6 +37,8 @@ function khoaTrang() {
     <p class="cong-phu">Chưa có tài khoản? Liên hệ người quản lý khóa học để được cấp.</p>
   </form>`;
   document.body.prepend(c);
+  // v44: bao ly do khi vua tu dang xuat
+  try { c.querySelector('.cong-tb').textContent = sessionStorage.getItem('cong-tb') || ''; sessionStorage.removeItem('cong-tb'); } catch (e) {}
   c.querySelector('[name=email]').focus();
 }
 function moTrang() {
@@ -77,8 +79,40 @@ function nutDangXuat() {
     dropSess();
     location.reload();
   });
-  document.body.append(b);
+  // v44: dat dau trang thay vi noi de khong de len tieu de tren dien thoai
+  document.body.prepend(b);
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v44): tu dang xuat sau 30 phut khong thao tac
+// Moc thao tac cuoi luu chung cho moi tab tren may. Khong day tien do khi tu dang xuat:
+// tab de lau co the cu hon tien do da hoc tren may khac; thay doi cua tab nay da duoc luu ngay khi thao tac.
+const IDLE_MS = 30 * 60 * 1000, ACT_KEY = 'hoc-hop-nhat-thao-tac';
+let lastAct = Date.now();
+const docAct = () => { try { return Number(localStorage.getItem(ACT_KEY)) || 0; } catch (e) { return 0; } };
+function ghiAct() {
+  const now = Date.now();
+  if (now - lastAct < 5000) return;
+  lastAct = now;
+  try { localStorage.setItem(ACT_KEY, String(now)); } catch (e) {}
+}
+function tuDangXuat(reload) {
+  const tb = 'Đã tự đăng xuất sau 30 phút không thao tác. Tiến độ đã lưu theo tài khoản.';
+  fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + sess.access_token } }).catch(() => {});
+  try { localStorage.removeItem('hoc-hop-nhat-tien-do-v31'); } catch (e) {}
+  dropSess();
+  if (!reload) { document.querySelector('#cong .cong-tb').textContent = tb; return; }
+  try { sessionStorage.setItem('cong-tb', tb); } catch (e) {}
+  location.reload();
+}
+function xetNghi() {
+  if (SB_ON && sess && Date.now() - Math.max(lastAct, docAct()) > IDLE_MS) tuDangXuat(true);
+}
+['click', 'keydown', 'scroll', 'touchstart', 'input'].forEach(t => addEventListener(t, ghiAct, { passive: true, capture: true }));
+setInterval(xetNghi, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) xetNghi(); });
+// Mo lai trang sau qua lau thi dang xuat ngay, chua cho xem noi dung
+if (SB_ON && sess && docAct() && Date.now() - docAct() > IDLE_MS) tuDangXuat(false);
+else { lastAct = 0; ghiAct(); }
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v44) ---*
 if (!SB_ON) moTrang();
 else if (!sess) khoaTrang();
 else if (sess.expires_at < Date.now()) freshSess().catch(() => {});

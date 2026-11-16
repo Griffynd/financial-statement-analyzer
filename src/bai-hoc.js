@@ -297,7 +297,7 @@ const LESSONS = [
       <p>Tắt hoặc bật từng bút toán để xem số hợp nhất thay đổi. Dòng được tô màu là dòng có điều chỉnh.</p>
       <p>Bảng xếp cột như sheet Input Data của RPT-001 (bảng hợp nhất tổng trong bộ hồ sơ làm việc): <strong>Preliminary</strong> là cộng ngang số các đơn vị, <strong>AJE</strong> là bút toán điều chỉnh lấy từ từng WP khoản mục (chỉ mục ghi cạnh tên bút toán), <strong>Final</strong> = Preliminary + AJE.</p>
       <button class="btn ghost" data-all="off">Tắt hết</button><button class="btn ghost" data-all="on">Bật hết</button>
-      <div class="toggles" style="margin-top:10px">${entries().map(e => `<label><input type="checkbox" data-e="${e.id}" ${off.has(year + e.id) ? '' : 'checked'}> <span>${e.id}. ${e.tieu_de}</span></label>`).join('')}</div>
+      <details class="chon" ${chonMo ? 'open' : ''}><summary>Chọn từng bút toán (${entries().length})</summary><div class="toggles">${entries().map(e => `<label><input type="checkbox" data-e="${e.id}" ${off.has(year + e.id) ? '' : 'checked'}> <span>${e.id}. ${e.tieu_de}</span></label>`).join('')}</div></details>
       <div id="wsheet"></div></div>` },
   { t: 'Báo cáo hợp nhất', r: () => {
       const b = D.bao_cao[year], b0 = D.bao_cao[year === 2025 ? 2024 : 2025];
@@ -585,7 +585,7 @@ const ADV = [
       <p>Bộ số được giản lược: Liên Minh coi như mua đầu năm với tài sản thuần 1.000; Kiến An coi như mua đầu năm và không có lãi trong năm; Phương Nam chỉ đưa bảng cân đối, không có KQKD; phần qua Lam Sơn JOC bỏ qua thuế. Quang Minh coi như Cát Tường giữ 80%, Bảo Tín giữ 20% ghi theo vốn chủ. Phần bao tiêu chỉ lấy năm đầu, tòa nhà cho thuê chỉ đưa bảng cân đối.</p>
       <p>Tắt từng bút toán để xem dòng kiểm tra báo lỗi nào. Làm tay cùng bộ số bằng <a href="Luyen-tap-hop-nhat_V8.xlsx" download>file Excel luyện tập</a>.</p>
       <button class="btn ghost" data-xall="off">Tắt hết</button><button class="btn ghost" data-xall="on">Bật hết</button>
-      <div class="toggles" style="margin-top:10px">${XT.en.map(e => `<label><input type="checkbox" data-x="${e.id}" ${xoff.has(e.id) ? '' : 'checked'}> <span>${e.id}. ${e.t}</span></label>`).join('')}</div>
+      <details class="chon" ${chonMo ? 'open' : ''}><summary>Chọn từng bút toán (${XT.en.length})</summary><div class="toggles">${XT.en.map(e => `<label><input type="checkbox" data-x="${e.id}" ${xoff.has(e.id) ? '' : 'checked'}> <span>${e.id}. ${e.t}</span></label>`).join('')}</div></details>
       <div id="xsheet">${xSheet()}</div></div>
       ${quiz('a-x1', 'Sau khi bật hết, NCI trên bảng cân đối là bao nhiêu?', 4673, '2.450 + Hoàng Mai 120 + Liên Minh 375 + Mỹ Hòa 18 + Kiến An 1.650 + Quang Minh 60 = 4.673.')}
       ${quiz('a-x2', 'Sau khi bật hết, XDCB dở dang là bao nhiêu?', 1100, '1.000 + 200 − 100 = 1.100.')}` },
@@ -671,6 +671,10 @@ function mcqHtml() {
 }
 const quizV = {}, quizDone = new Set();
 let saveOn = true, scrollTimer;
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v44): danh sach chon but toan (bai 10, 35) thu gon, nho trang thai mo khi ve lai
+let chonMo = false;
+document.addEventListener('toggle', ev => { if (ev.target.classList && ev.target.classList.contains('chon')) chonMo = ev.target.open; }, true);
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v44) ---*
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-11 (V36): ghi chu tung bai, dang nhap va luu tien do theo tai khoan
 const notes = {};
 // SB_URL, SB_KEY, sess, keepSess, freshSess, dropSess nam o src/dang-nhap.js (v40)
@@ -688,19 +692,48 @@ async function sbFetch(path, opt = {}) {
   if (!r.ok) { const err = new Error(body); err.status = r.status; throw err; }
   return body ? JSON.parse(body) : null;
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v44): lastSync = moc cap_nhat_luc ma tab nay da biet, de nhan ra tien do moi hon tu may khac
+let lastSync = 0;
 async function cloudPull() {
   await freshSess();
-  const rows = await sbFetch('/rest/v1/hoc_tien_do?select=du_lieu&user_id=eq.' + sess.user_id);
-  return rows.length ? rows[0].du_lieu : null;
+  const rows = await sbFetch('/rest/v1/hoc_tien_do?select=du_lieu,cap_nhat_luc&user_id=eq.' + sess.user_id);
+  if (!rows.length) return null;
+  lastSync = Date.parse(rows[0].cap_nhat_luc) || 0;
+  return rows[0].du_lieu;
 }
-async function cloudPush(data) {
+async function cloudPush(data, keepalive) {
   await freshSess();
-  await sbFetch('/rest/v1/hoc_tien_do?on_conflict=user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: sess.user_id, du_lieu: data, cap_nhat_luc: new Date().toISOString() }) });
+  const luc = new Date().toISOString();
+  await sbFetch('/rest/v1/hoc_tien_do?on_conflict=user_id', { method: 'POST', keepalive: !!keepalive, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: sess.user_id, du_lieu: data, cap_nhat_luc: luc }) });
+  lastSync = Date.parse(luc);
 }
+// An tab hoac dong tab: day ngay thay doi dang cho, khong doi het 1,5 giay
+function cloudFlush() {
+  if (!SB_ON || !sess || !cloudTimer) return;
+  clearTimeout(cloudTimer); cloudTimer = null;
+  cloudPush(stateNow(), true).catch(() => {});
+}
+// Quay lai tab: neu tai khoan co tien do moi hon (hoc tren may khac) thi tai ve truoc khi hoc tiep
+async function cloudCheck() {
+  if (!SB_ON || !sess || cloudTimer) return;
+  const truoc = lastSync;
+  try { await freshSess(); } catch (e) { return; }
+  const r = await sbFetch('/rest/v1/hoc_tien_do?select=cap_nhat_luc&user_id=eq.' + sess.user_id).catch(() => []);
+  if (!r.length || !(Date.parse(r[0].cap_nhat_luc) > truoc)) return;
+  const data = await cloudPull().catch(() => null);
+  if (!data || cloudTimer) return;
+  const y = applyState(data);
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(stateNow())); } catch (e) {}
+  cloudMsg = 'Đã tải tiến độ mới nhất của tài khoản.';
+  drawAcct(); render(); window.scrollTo(0, y);
+}
+document.addEventListener('visibilitychange', () => { document.hidden ? cloudFlush() : cloudCheck(); });
+addEventListener('pagehide', cloudFlush);
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v44) ---*
 function cloudSave() {
   if (!SB_ON || !sess) return;
   clearTimeout(cloudTimer);
-  cloudTimer = setTimeout(() => cloudPush(stateNow())
+  cloudTimer = setTimeout(() => (cloudTimer = null, cloudPush(stateNow()))
     .then(() => { cloudMsg = 'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }); drawAcct(); })
     .catch(e => { cloudMsg = 'Chưa lưu được lên tài khoản: ' + (e.status ? 'lỗi ' + e.status : e.message); drawAcct(); }), 1500);
 }
