@@ -3,29 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phân tích Báo cáo Tài chính</title>
+<title>Học hợp nhất BCTC</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+  /* v46 2026-11-16 (Ngo Ba Hung): ten bien cu tro sang bien dung chung o dang-nhap.css, khong con ma mau rieng */
   :root {
-    --paper: #EEF1F5;
-    --card: #FFFFFF;
-    --ink: #1C2B39;
-    --ink-soft: #5B6B78;
-    --ink-faint: #8A97A3;
-    --emerald: #1F7A5C;
-    --emerald-bg: #E6F2ED;
-    --rust: #B84A39;
-    --rust-bg: #F7EAE7;
-    --gold: #B9852E;
-    --gold-bg: #F6EEDD;
-    --line: #DBE1E7;
-    --line-soft: #E9EDF1;
-    --radius: 10px;
-    --serif: 'Source Serif 4', Georgia, serif;
-    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
-    --mono: 'IBM Plex Mono', 'SF Mono', monospace;
+    --paper: var(--nen); --card: var(--mat); --ink: var(--muc); --ink-soft: var(--muc-nhat); --ink-faint: var(--muc-nhat);
+    --emerald: var(--thong); --emerald-bg: var(--thong-nhat); --rust: var(--co); --rust-bg: var(--co-nen);
+    --gold: var(--no); --gold-bg: var(--thong-nhat); --line: var(--ke); --line-soft: var(--ke); --radius: var(--bo);
+    --serif: var(--chu); --sans: var(--chu); --mono: var(--chu);
   }
   * { box-sizing: border-box; }
   body {
@@ -71,7 +59,7 @@
   button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     outline: 3px solid var(--emerald); outline-offset: 3px;
   }
-  .btn:hover { background: #34495B; }
+  .btn:hover { background: var(--thong-dam); }
   .btn.ghost:hover, .icon-btn:hover, .pill:not(.active):hover, .tab:hover {
     background: var(--emerald-bg); color: var(--ink); border-color: var(--emerald);
   }
@@ -227,46 +215,58 @@
     #app { max-width: 100%; padding: 0; }
   }
 
-  /* V13: cung giao dien so ke toan voi trang hoc */
-  :root { --paper: #E9EFE3; --card: #FBFCF7; --ink: #17312A; --ink-soft: #4C6158; --ink-faint: #6A7D74;
-    --emerald: #1B6B50; --emerald-bg: #E1EDDF; --rust: #A5322A; --rust-bg: #F6E6E1;
-    --gold: #9A7416; --gold-bg: #F5E9BE; --line: #C4D2C0; --line-soft: #DBE5D6; --radius: 3px;
-    --serif: 'Sitka Text', Cambria, Georgia, serif; --sans: 'Segoe UI', -apple-system, Arial, sans-serif; --mono: 'Segoe UI', -apple-system, Arial, sans-serif; }
-  .masthead { border-bottom: 3px double var(--ink); }
-  .masthead h1 { color: #123B31; font-weight: 700; }
-  .upload-zone { border: 1px solid var(--line); background: var(--card); text-align: left; padding: 28px 32px; }
-  .upload-zone .big { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: #123B31; margin-bottom: 8px; }
-  .zone-actions { justify-content: flex-start; margin-top: 16px; }
-  .btn { background: #123B31; border-color: #123B31; border-radius: 3px; }
-  .btn.ghost { background: transparent; color: #123B31; }
-
-  /* V18: man hinh bat dau hai loi vao */
-  .upload-zone { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px;
-    padding: 0; border: 0; background: none; }
-  .upload-zone h2 { margin: 0; }
+  /* v46 2026-11-16 (Ngo Ba Hung): thanh dau trang giong trang bai hoc; khoi hoc len tren, cong cu phan tich ben duoi */
+  body { line-height: 1.6; }
+  #app { max-width: 1008px; padding: 32px 24px 64px; }
+  .masthead { position: sticky; top: 0; z-index: 20; height: var(--cao-dau); display: flex; align-items: center; gap: 24px;
+    padding: 0 24px; margin: 0; border: 0; background: var(--thong); color: var(--tren-thong); flex-wrap: nowrap; }
+  .masthead h1 { font-size: 1.125rem; font-weight: 700; white-space: nowrap; letter-spacing: 0; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; font-size: .9375rem;
+    font-weight: 600; border: 1px solid var(--thong); border-radius: var(--bo); background: var(--thong); color: var(--tren-thong); }
+  .btn:hover { background: var(--thong-dam); }
+  .btn.ghost { background: transparent; color: var(--thong); }
+  .btn:active { opacity: 1; }
+  h2, h3 { line-height: 1.25; }
+  .card h2, .card h3, .ratio-group-title, .modal h2 { font-weight: 700; }
+  .ratio-group-title { border-left-color: var(--thong); }
+  .tab.active { border-bottom-color: var(--thong); }
+  .tab, .pill, .icon-btn, table, .kpi .label, .footer-note, .status-msg, .error-msg { font-size: .875rem; }
+  thead th { font-size: .8125rem; font-weight: 600; color: var(--muc); background: var(--thong-nhat); border-bottom: 1px solid var(--muc); }
+  tbody td { font-variant-numeric: tabular-nums; }
+  .modal-overlay { background: rgb(22 48 42 / .45); }
+  .hoc { margin-bottom: 40px; padding: 32px; border: 1px solid var(--ke); border-top: 4px solid var(--thong); border-radius: var(--bo); background: var(--mat); }
+  .hoc h2 { margin: 0 0 8px; font-size: 1.75rem; color: var(--thong); }
+  .hoc p { margin: 0 0 24px; max-width: 60ch; color: var(--muc-nhat); font-size: 1.0625rem; }
+  .hoc .btn { margin: 0; min-height: 48px; padding: 0 28px; font-size: 1rem; }
+  .cong-cu-dau { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding-bottom: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--ke); }
+  .cong-cu-dau h2 { margin: 0; font-size: 1.25rem; color: var(--thong); }
+  .cong-cu-dau .sub { font-size: .875rem; color: var(--muc-nhat); font-family: var(--chu); }
+  .upload-zone { padding: 0; border: 0; background: none; text-align: left; margin-bottom: 18px; }
   .upload-zone.drag { background: none; }
-  .start-file { background: var(--card); border: 2px dashed #7F9A8B; padding: 56px 40px; min-height: 300px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .upload-zone.drag .start-file { border-color: var(--emerald); background: var(--emerald-bg); }
-  .upload-zone .start-file .big { font-size: 1.75rem; line-height: 1.25; margin-bottom: 10px; }
-  .start-file p { max-width: 54ch; font-size: 0.95rem; line-height: 1.55; }
-  .upload-zone .zone-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-    gap: 8px 20px; margin-top: 22px; }
-  .start-file .btn { margin: 0; padding: 12px 34px; font-size: 1rem; }
-  .text-link { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.9rem; color: #123B31;
+  .start-file { padding: 32px; border: 2px dashed var(--ke); border-radius: var(--bo); background: var(--mat);
+    display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .upload-zone.drag .start-file { border-color: var(--thong); background: var(--thong-nhat); }
+  .upload-zone .start-file .big { margin: 0 0 6px; font-size: 1.125rem; font-weight: 700; color: var(--muc); }
+  .start-file p { max-width: 56ch; margin: 0; font-size: .9375rem; color: var(--muc-nhat); }
+  .upload-zone .zone-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 20px; margin-top: 18px; }
+  .start-file .btn { margin: 0; }
+  .text-link { background: none; border: 0; padding: 4px 0; font: inherit; font-size: .9375rem; color: var(--thong);
     text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-  .text-link:hover { color: var(--emerald); }
-  .start-learn { background: #123B31; color: #F3F7EF; padding: 32px 28px; display: flex; flex-direction: column; justify-content: flex-end; }
-  .start-learn h2 { font-family: var(--serif); font-size: 1.4rem; line-height: 1.3; }
-  .upload-zone .start-learn p { color: #CFDDD2; font-size: 0.92rem; line-height: 1.55; margin: 10px 0 20px; }
-  .btn.learn-btn { align-self: flex-start; margin: 0; background: #F3F7EF; border-color: #F3F7EF; color: #123B31; font-weight: 600; padding: 10px 20px; }
-  .btn.learn-btn:hover { background: #fff; }
-  .start-learn a:focus-visible { outline-color: #F3F7EF; }
+  .text-link:hover { color: var(--thong-dam); text-decoration-thickness: 2px; }
   @media (max-width: 760px) {
-    .upload-zone { grid-template-columns: 1fr; }
-    .start-file { padding: 32px 20px; min-height: 0; }
-    .upload-zone .start-file .big { font-size: 1.4rem; }
-    .start-learn { padding: 24px 20px; }
+    .masthead { gap: 12px; padding: 0 16px; }
+    .masthead h1 { font-size: 1rem; }
+    #app { padding: 20px 16px 48px; }
+    .hoc { padding: 20px 16px; margin-bottom: 32px; }
+    .hoc h2 { font-size: 1.375rem; }
+    .hoc .btn { width: 100%; }
+    .start-file { padding: 24px 16px; }
+    .btn { min-height: 44px; }
+  }
+  @media print {
+    .hoc, #cong-ra { display: none !important; }
+    .masthead { position: static; background: none; color: var(--muc); padding: 0; }
   }
 </style>
 {{CONG_DAU}}
@@ -274,10 +274,21 @@
 <body>
 {{CONG_THAN}}
 <a class="skip-link" href="#app">Đến nội dung chính</a>
+<!-- v46 2026-11-16 (Ngo Ba Hung): thanh dau trang chung; khoi hoc o tren, cong cu phan tich o duoi -->
+<header class="masthead">
+  <h1>Học hợp nhất BCTC</h1>
+</header>
 <main id="app" tabindex="-1">
 
-  <div class="masthead">
-    <h1>Phân tích Báo cáo Tài chính</h1>
+  <section class="hoc" id="hocBlock" aria-labelledby="startLearnTitle">
+    <h2 id="startLearnTitle">Học hợp nhất báo cáo tài chính</h2>
+    <p>37 bài thực hành trên một tập đoàn mẫu có 11 công ty con và 6 công ty liên kết.</p>
+    <a class="btn" id="hocNut" href="hoc-hop-nhat.html">Bắt đầu học</a>
+  </section>
+
+  <section class="cong-cu" aria-labelledby="congCuTitle">
+  <div class="cong-cu-dau">
+    <h2 id="congCuTitle">Phân tích báo cáo tài chính</h2>
     <span class="sub" id="fileLabel">chưa có dữ liệu</span>
   </div>
 
@@ -291,11 +302,6 @@
         <button class="text-link" id="openHistoryFromZone" type="button">Xem lịch sử đã tải</button>
       </div>
       <input type="file" id="fileInput" name="reportFile" aria-label="File báo cáo tài chính" accept=".xlsx,.xls,.csv">
-    </section>
-    <section class="start-learn" aria-labelledby="startLearnTitle">
-      <h2 id="startLearnTitle">Học hợp nhất báo cáo tài chính</h2>
-      <p>37 bài thực hành trên một tập đoàn mẫu có 11 công ty con và 6 công ty liên kết.</p>
-      <a class="btn learn-btn" href="hoc-hop-nhat.html">Vào bài học</a>
     </section>
   </div>
 
@@ -327,6 +333,8 @@
     <section id="tab-ratios" role="tabpanel" aria-labelledby="tabbtn-ratios" tabindex="0" style="display:none;"></section>
     <section id="tab-compare" role="tabpanel" aria-labelledby="compareTabBtn" tabindex="0" style="display:none;"></section>
   </div>
+
+  </section>
 
   <div class="footer-note">Các chỉ số được tính tự động dựa trên tên chỉ tiêu nhận diện được trong file. Kiểm tra lại với số liệu gốc trước khi sử dụng cho quyết định quan trọng.</div>
 </main>
@@ -597,6 +605,7 @@ function addCompany(company, append) {
   if (append) { companies.push(company); activeIdx = companies.length - 1; }
   else { companies = [company]; activeIdx = 0; }
   document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('hocBlock').hidden = true; // v46 (Ngo Ba Hung): dang xem phan tich thi an khoi hoc
   document.getElementById('topControls').style.display = 'flex';
   document.getElementById('fileLabel').textContent = companies.length === 1 ? company.name : (companies.length + ' công ty đã tải');
   renderCompanyPills();
@@ -710,8 +719,8 @@ function buildOverview() {
       data: {
         labels: c.periods,
         datasets: [
-          c.dataByItem.revenue ? { label: 'Doanh thu thuần', data: c.dataByItem.revenue, backgroundColor: '#B9852E' } : null,
-          c.dataByItem.netIncome ? { label: 'Lợi nhuận sau thuế', data: c.dataByItem.netIncome, backgroundColor: '#1F7A5C' } : null,
+          c.dataByItem.revenue ? { label: 'Doanh thu thuần', data: c.dataByItem.revenue, backgroundColor: '#1D4E89' } : null,
+          c.dataByItem.netIncome ? { label: 'Lợi nhuận sau thuế', data: c.dataByItem.netIncome, backgroundColor: '#123B31' } : null,
         ].filter(Boolean)
       },
       options: chartOpts()
@@ -721,8 +730,8 @@ function buildOverview() {
     const liab = last('totalLiab', c) || 0, eq = equity || 0;
     charts.structure = new Chart(document.getElementById('chartStructure'), {
       type: 'doughnut',
-      data: { labels: ['Nợ phải trả', 'Vốn chủ sở hữu'], datasets: [{ data: [liab, eq], backgroundColor: ['#B84A39', '#1F7A5C'] }] },
-      options: { maintainAspectRatio: false, animation: chartAnimation(), plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } } }
+      data: { labels: ['Nợ phải trả', 'Vốn chủ sở hữu'], datasets: [{ data: [liab, eq], backgroundColor: ['#A5322A', '#123B31'] }] },
+      options: { maintainAspectRatio: false, animation: chartAnimation(), plugins: { legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 12 } } } } }
     });
   }
   if (c.dataByItem.opCashFlow || c.dataByItem.invCashFlow || c.dataByItem.finCashFlow) {
@@ -731,9 +740,9 @@ function buildOverview() {
       data: {
         labels: c.periods,
         datasets: [
-          c.dataByItem.opCashFlow ? { label: 'HĐ kinh doanh', data: c.dataByItem.opCashFlow, backgroundColor: '#1F7A5C' } : null,
-          c.dataByItem.invCashFlow ? { label: 'HĐ đầu tư', data: c.dataByItem.invCashFlow, backgroundColor: '#B9852E' } : null,
-          c.dataByItem.finCashFlow ? { label: 'HĐ tài chính', data: c.dataByItem.finCashFlow, backgroundColor: '#B84A39' } : null,
+          c.dataByItem.opCashFlow ? { label: 'HĐ kinh doanh', data: c.dataByItem.opCashFlow, backgroundColor: '#123B31' } : null,
+          c.dataByItem.invCashFlow ? { label: 'HĐ đầu tư', data: c.dataByItem.invCashFlow, backgroundColor: '#1D4E89' } : null,
+          c.dataByItem.finCashFlow ? { label: 'HĐ tài chính', data: c.dataByItem.finCashFlow, backgroundColor: '#A5322A' } : null,
         ].filter(Boolean)
       },
       options: chartOpts()
@@ -746,10 +755,10 @@ function chartOpts() {
     responsive: true,
     maintainAspectRatio: false,
     animation: chartAnimation(),
-    plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } },
+    plugins: { legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 12 } } } },
     scales: {
-      x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } },
-      y: { ticks: { font: { family: 'IBM Plex Mono', size: 10 }, callback: v => fmtNum(v, 0) }, grid: { color: '#E9EDF1' } }
+      x: { ticks: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 11 } }, grid: { display: false } },
+      y: { ticks: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 11 }, callback: v => fmtNum(v, 0) }, grid: { color: '#D5DED8' } }
     }
   };
 }
@@ -854,31 +863,38 @@ function buildComparison() {
   charts.compareRevenue = new Chart(document.getElementById('chartCompareRevenue'), {
     type: 'bar',
     data: { labels: names, datasets: [
-      { label: 'Doanh thu thuần', data: companies.map(c => last('revenue', c)), backgroundColor: '#B9852E' },
-      { label: 'Lợi nhuận sau thuế', data: companies.map(c => last('netIncome', c)), backgroundColor: '#1F7A5C' },
+      { label: 'Doanh thu thuần', data: companies.map(c => last('revenue', c)), backgroundColor: '#1D4E89' },
+      { label: 'Lợi nhuận sau thuế', data: companies.map(c => last('netIncome', c)), backgroundColor: '#123B31' },
     ]},
     options: chartOpts()
   });
   charts.compareMargin = new Chart(document.getElementById('chartCompareMargin'), {
     type: 'bar',
     data: { labels: names, datasets: [
-      { label: 'Biên LN ròng', data: companies.map(c => RATIO_DEFS.netMargin.fn(c.periods.length-1, c)), backgroundColor: '#1F7A5C' },
-      { label: 'ROA', data: companies.map(c => RATIO_DEFS.roa.fn(c.periods.length-1, c)), backgroundColor: '#B9852E' },
-      { label: 'ROE', data: companies.map(c => RATIO_DEFS.roe.fn(c.periods.length-1, c)), backgroundColor: '#B84A39' },
+      { label: 'Biên LN ròng', data: companies.map(c => RATIO_DEFS.netMargin.fn(c.periods.length-1, c)), backgroundColor: '#123B31' },
+      { label: 'ROA', data: companies.map(c => RATIO_DEFS.roa.fn(c.periods.length-1, c)), backgroundColor: '#1D4E89' },
+      { label: 'ROE', data: companies.map(c => RATIO_DEFS.roe.fn(c.periods.length-1, c)), backgroundColor: '#A5322A' },
     ]},
     options: {
       responsive: true,
     maintainAspectRatio: false,
     animation: chartAnimation(),
-      plugins: { legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Sans', size: 11 } } } },
+      plugins: { legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 12 } } } },
       scales: {
-        x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } },
-        y: { ticks: { font: { family: 'IBM Plex Mono', size: 10 }, callback: v => fmtPct(v, 0) }, grid: { color: '#E9EDF1' } }
+        x: { ticks: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 11 } }, grid: { display: false } },
+        y: { ticks: { font: { family: "'Segoe UI', system-ui, -apple-system, Arial, sans-serif", size: 11 }, callback: v => fmtPct(v, 0) }, grid: { color: '#D5DED8' } }
       }
     }
   });
 }
 
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): nut "Hoc tiep bai N" theo tien do da luu cua trang bai hoc
+(() => {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem('hoc-hop-nhat-tien-do-v31')); } catch (e) {}
+  if (p && Number.isInteger(p.lesson)) document.getElementById('hocNut').textContent = 'Học tiếp bài ' + (p.lesson + 1);
+})();
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 // ================= History (browser localStorage) =================
 // Uses localStorage so upload history persists across visits once this
 // project is deployed as a standalone site (e.g. GitHub Pages). Data

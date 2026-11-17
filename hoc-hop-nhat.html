@@ -5,226 +5,285 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Học hợp nhất BCTC</title>
 <style>
-  :root {
-    --paper: #E9EFE3; --card: #FBFCF7; --ink: #17312A; --ink-soft: #4C6158; --ink-faint: #6A7D74;
-    --emerald: #1B6B50; --emerald-bg: #E1EDDF; --rust: #A5322A; --rust-bg: #F6E6E1;
-    --gold: #9A7416; --gold-bg: #F5E9BE; --line: #C4D2C0; --line-soft: #DBE5D6; --radius: 3px;
-    --debit: #1D4E89; --pine: #123B31;
-    --serif: 'Sitka Text', Cambria, Georgia, serif; --sans: 'Segoe UI', -apple-system, Arial, sans-serif; --mono: 'Segoe UI', -apple-system, Arial, sans-serif;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
-  #app { max-width: 1180px; margin: 0 auto; padding: 18px 16px 60px; }
-  .masthead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;
-    border-bottom: 2px solid var(--ink); padding-bottom: 12px; margin-bottom: 8px; }
-  h1 { font-family: var(--serif); font-weight: 600; font-size: 1.5rem; margin: 0; }
-  .years button { font: inherit; font-size: .82rem; padding: 6px 12px; background: var(--card); color: var(--ink);
-    border: 1px solid var(--line); border-radius: 999px; cursor: pointer; margin-left: 4px; }
-  .years button[aria-pressed=true] { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .notice { font-size: .78rem; color: var(--rust); margin: 0 0 16px; }
-  .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 18px; align-items: start; }
-  nav { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 8px; position: sticky; top: 12px; }
-  nav button { display: block; width: 100%; text-align: left; font: inherit; font-size: .86rem; padding: 8px 10px; border: 0;
-    background: transparent; color: var(--ink-soft); border-radius: 7px; cursor: pointer; }
-  nav .group { font-size: .72rem; font-weight: 600; color: var(--ink-faint); padding: 10px 10px 4px; white-space: nowrap; }
-  nav button:hover { background: var(--emerald-bg); color: var(--ink); }
-  nav button[aria-current=true] { background: var(--gold-bg); color: var(--ink); font-weight: 600; }
-  button:focus-visible, input:focus-visible { outline: 3px solid var(--emerald); outline-offset: 2px; }
-  .card { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; }
-  h2 { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; margin: 0 0 8px; scroll-margin-top: 12px; }
-  h3 { font-family: var(--serif); font-weight: 600; font-size: 1rem; margin: 0 0 8px; }
-  p { margin: 0 0 10px; } ul { margin: 0 0 10px; padding-left: 20px; }
-  .scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: .84rem; }
-  th { text-align: right; font-weight: 500; color: var(--ink-soft); font-size: .75rem; padding: 6px 8px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
-  td { text-align: right; font-family: var(--mono); padding: 5px 8px; border-bottom: 1px solid var(--line-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  th.l, td.l { text-align: left; font-family: var(--sans); white-space: normal; min-width: 130px; }
-  tr.total td { font-weight: 700; border-top: 1.5px solid var(--ink); }
-  tr.changed td { background: var(--gold-bg); }
-  .entry { border-left: 3px solid var(--gold); padding: 2px 0 2px 12px; margin-bottom: 16px; }
-  .entry .why { font-size: .84rem; color: var(--ink-soft); }
-  .entry table { max-width: 520px; }
-  .quiz { background: var(--emerald-bg); border-radius: 8px; padding: 12px 14px; }
-  .quiz label { display: block; margin-bottom: 8px; }
-  .quiz input { font: inherit; width: 130px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
-  .btn { font: inherit; font-size: .84rem; padding: 7px 13px; border-radius: 7px; border: 1.5px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; margin: 0 4px 4px 0; }
-  .btn.ghost { background: transparent; color: var(--ink); }
-  .fb { display: block; margin-top: 8px; font-size: .86rem; }
-  .fb.ok { color: var(--emerald); } .fb.no { color: var(--rust); }
-  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 4px 12px; font-size: .82rem; margin-bottom: 10px; }
-  .toggles label { display: flex; gap: 6px; align-items: flex-start; cursor: pointer; }
-  .status { padding: 8px 12px; border-radius: 7px; font-size: .86rem; margin-bottom: 10px; }
-  .status.ok { background: var(--emerald-bg); color: var(--emerald); } .status.warn { background: var(--gold-bg); color: #7A5716; }
-  .tree { display: grid; gap: 8px; font-size: .9rem; }
-  .node { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card); }
-  .node small { color: var(--ink-soft); display: block; }
-  .node.l1 { margin-left: 24px; } .node.l2 { margin-left: 48px; } .node.assoc { border-style: dashed; }
-  .matrix td, .matrix th { text-align: center; }
-  .matrix td button { font: inherit; width: 100%; min-height: 34px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); cursor: pointer; }
-  .matrix td button.diff { background: var(--rust-bg); border-color: var(--rust); }
-  .matrix td button.same { background: var(--emerald-bg); }
-  .matrix td button[aria-pressed=true] { outline: 2px solid var(--ink); }
-  .classify select { font: inherit; font-size: .82rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); }
-  table td.t { white-space: normal; font-family: var(--sans); text-align: left; min-width: 110px; }
-  .pager { display: flex; justify-content: space-between; gap: 8px; }
-  @media (max-width: 760px) {
-    .layout { grid-template-columns: minmax(0, 1fr); }
-    nav { position: static; display: flex; overflow-x: auto; gap: 2px; }
-    nav button { width: auto; white-space: nowrap; }
-  }
+/* v46 2026-11-16 (Ngo Ba Hung): viet lai toan bo giao dien trang bai hoc. Bien mau, chu dat o dang-nhap.css */
+* { box-sizing: border-box; }
+html { scroll-padding-top: calc(var(--cao-dau) + 12px); }
+body { margin: 0; background: var(--nen); color: var(--muc); font-family: var(--chu); font-size: 1rem; line-height: 1.6; -webkit-text-size-adjust: 100%; }
+h1, h2, h3 { line-height: 1.25; font-weight: 700; text-wrap: balance; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 22px; }
+li { margin-bottom: 4px; }
+a { color: var(--thong); text-underline-offset: 3px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--thong); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.an { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  /* V23: giao dien so ke toan */
-  body { line-height: 1.6; }
-  #app { max-width: none; padding: 0; }
-  .masthead { background: var(--pine); color: #F1F6EC; border: 0; margin: 0; padding: 14px 24px; align-items: center; }
-  h1 { font-size: 1.45rem; font-weight: 700; }
-  .years button { background: transparent; color: #F1F6EC; border-color: #6E8F82; border-radius: var(--radius); }
-  .years button[aria-pressed=true] { background: var(--gold-bg); color: var(--ink); border-color: var(--gold-bg); font-weight: 600; }
-  .notice { background: var(--gold-bg); color: var(--ink); margin: 0; padding: 6px 24px; font-size: .8rem; }
-  .layout { grid-template-columns: 272px minmax(0, 1fr); gap: 0; }
-  nav { background: #DDE7D8; border: 0; border-right: 1px solid var(--line); border-radius: 0; padding: 12px 10px 28px; top: 0; max-height: 100vh; overflow-y: auto; }
-  nav button { color: var(--ink); border-radius: var(--radius); padding: 7px 10px; line-height: 1.35; }
-  nav button:hover { background: #CCDAC7; color: var(--ink); }
-  nav button[aria-current=true] { background: var(--pine); color: #F1F6EC; }
-  nav .group { font-family: var(--serif); font-size: .95rem; font-weight: 700; color: var(--pine); padding: 16px 10px 5px; white-space: normal; }
-  main { max-width: 980px; padding: 24px 32px 56px; outline: none; }
-  .card { border: 1px solid var(--line); padding: 20px 24px; margin-bottom: 16px; }
-  h2 { font-size: 1.6rem; font-weight: 700; line-height: 1.25; margin-bottom: 12px; color: var(--pine); }
-  h3 { font-size: 1.14rem; font-weight: 700; margin: 4px 0 12px; color: var(--pine); }
-  .card > p, .card > ul, .entry .why { max-width: 72ch; }
-  table { font-size: .9rem; }
-  th { color: var(--ink); font-size: .8rem; font-weight: 600; padding: 7px 10px; background: var(--emerald-bg); border-bottom: 1px solid var(--ink); }
-  td { padding: 6px 10px; border-bottom: 1px solid var(--line-soft); }
-  td + td, th + th { border-left: 1px solid var(--line-soft); }
-  tbody tr:hover td { background: #F0F4E8; }
-  tr.total td { border-top: 1px solid var(--ink); border-bottom: 3px double var(--ink); background: transparent; }
-  tr.changed td { background: var(--gold-bg); }
-  .entry { border: 0; border-top: 1px solid var(--line); padding: 14px 0 0; margin-bottom: 18px; }
-  .card > .entry:first-child { border-top: 0; padding-top: 0; }
-  .entry table { max-width: 600px; }
-  tr.dr td:first-child { color: var(--debit); font-weight: 600; }
-  tr.cr td:first-child { color: var(--rust); font-weight: 600; padding-left: 34px; }
-  .quiz { background: var(--card); border: 1px solid var(--emerald); border-left-width: 5px; border-radius: var(--radius); padding: 14px 16px; margin-top: 12px; }
-  .quiz input { background: #fff; border: 1px solid var(--ink-faint); border-radius: var(--radius); text-align: right; font-variant-numeric: tabular-nums; }
-  .btn { background: var(--pine); border: 1px solid var(--pine); border-radius: var(--radius); font-weight: 600; padding: 8px 14px; }
-  .btn:hover { background: #1B5345; }
-  .btn.ghost { background: transparent; color: var(--pine); }
-  .btn.ghost:hover { background: var(--emerald-bg); }
-  .fb.ok { font-weight: 600; } .fb.no { font-weight: 600; }
-  .status { border-radius: var(--radius); }
-  .node { border-radius: var(--radius); border-color: var(--ink-faint); }
-  .pager { margin-top: 24px; }
-  @media (max-width: 760px) {
-    .masthead { padding: 12px 16px; } .notice { padding: 6px 16px; }
-    .layout { grid-template-columns: minmax(0, 1fr); }
-    nav { position: sticky; top: 0; z-index: 2; display: flex; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
-    nav .group { display: none; }
-    main { padding: 16px; } .card { padding: 16px; }
-    h2 { font-size: 1.35rem; } tr.cr td:first-child { padding-left: 22px; }
-  }
+/* Thanh dau trang */
+.masthead { position: sticky; top: 0; z-index: 20; height: var(--cao-dau); display: flex; align-items: center; gap: 24px; padding: 0 24px; background: var(--thong); color: var(--tren-thong); }
+.masthead h1 { margin: 0; font-size: 1.125rem; white-space: nowrap; }
+.masthead h1 a { color: inherit; text-decoration: none; }
+.masthead h1 a:hover { text-decoration: underline; }
+.masthead :focus-visible { outline-color: var(--tren-thong); }
+.ten-ngan { display: none; }
+.years { display: inline-flex; border: 1px solid var(--tren-thong-nhat); border-radius: var(--bo); }
+.years button:first-child { border-radius: 3px 0 0 3px; } .years button:last-child { border-radius: 0 3px 3px 0; }
+.years button:focus-visible { position: relative; z-index: 1; }
+.years button { min-height: 32px; padding: 0 14px; font-size: .875rem; font-weight: 600; border: 0; background: transparent; color: var(--tren-thong-nhat); cursor: pointer; }
+.years button + button { border-left: 1px solid var(--tren-thong-nhat); }
+.years button[aria-pressed=true] { background: var(--tren-thong); color: var(--thong); }
+.years button:not([aria-pressed=true]):not(:disabled):hover { background: var(--thong-dam); color: var(--tren-thong); }
+.years button:disabled { cursor: not-allowed; opacity: .6; }
+#acct { margin-left: auto; display: flex; align-items: center; gap: 14px; min-width: 0; font-size: .875rem; color: var(--tren-thong-nhat); }
+#acct[hidden] { display: none; }
+#acct .msg, #acct .email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#acct .msg:empty { display: none; }
+#acct .btn { min-height: 36px; margin: 0; background: transparent; border-color: var(--tren-thong-nhat); color: var(--tren-thong); }
+#acct .btn:hover { background: var(--thong-dam); }
+.notice { margin: 0; padding: 6px 24px; font-size: .8125rem; color: var(--muc-nhat); background: var(--nen); border-bottom: 1px solid var(--ke); }
+#nav-mo { display: none; }
 
-  /* V24: luu tien do */
-  .saved { font-size: .78rem; color: var(--ink-soft); padding: 16px 10px 6px; }
-  #reset { background: none; border: 0; color: var(--rust); text-decoration: underline; width: auto; padding: 0 10px; font-size: .78rem; }
-  @media (max-width: 760px) { .saved { display: none; } #reset { white-space: nowrap; } }
-  #acct { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; }
-  #acct input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--radius); width: 160px; max-width: 100%; }
-  #acct .btn { margin: 0; padding: 5px 11px; background: var(--gold-bg); border-color: var(--gold-bg); color: var(--ink); }
-  #acct .btn.ghost { background: transparent; color: #F1F6EC; border-color: #6E8F82; }
-  #acct .msg { width: 100%; text-align: right; }
-  .note textarea { width: 100%; min-height: 90px; font: inherit; font-size: .9rem; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); resize: vertical; }
-  .note .hint { font-size: .78rem; color: var(--ink-soft); margin: 4px 0 0; }
+/* Bo cuc */
+.layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); align-items: start; }
+main:focus-visible { outline: none; }
+main { min-width: 0; min-height: calc(100vh - var(--cao-dau)); background: var(--mat); border-left: 1px solid var(--ke); padding: 32px 40px 64px; outline: none; }
+main > * { max-width: 960px; margin-left: auto; margin-right: auto; }
 
-  /* V26: cau hoi trac nghiem */
-  .mcq { margin-top: 18px; } .mcq:first-of-type { margin-top: 0; }
-  .mcq-q { font-weight: 600; margin-bottom: 8px; max-width: 72ch; }
-  .mcq-o { display: block; width: 100%; text-align: left; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 6px; font: inherit; cursor: pointer; }
-  .mcq-o:hover { border-color: var(--pine); }
-  .mcq-o[aria-pressed=true].ok { background: var(--emerald-bg); border-color: var(--emerald); font-weight: 600; }
-  .mcq-o[aria-pressed=true].no { background: var(--rust-bg); border-color: var(--rust); }
-  .unit { text-align: right; font-size: .78rem; color: var(--ink-soft); margin: 8px 0 3px; }
-  .gt-root { width: 240px; margin: 0 auto; background: var(--pine); color: #F3F7EF; text-align: center; padding: 10px; }
-  .gt-root strong { display: block; font-size: 1.05rem; } .gt-root small { color: #CFDDD2; }
-  .gt-stem { width: 3px; height: 18px; background: var(--ink); margin: 0 auto; }
-  .gt-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; border-top: 3px solid var(--ink); padding-top: 16px; }
-  .gt-groups h3 { margin: 0 0 10px; } .gt-groups h3 small { display: block; font: 400 .8rem var(--sans); color: var(--ink-soft); }
-  .gt-b { position: relative; padding-left: 52px; margin-bottom: 8px; --c: var(--ink); }
-  .gt-b::before { content: ''; position: absolute; left: 0; top: -8px; bottom: -8px; width: 2px; background: var(--c); }
-  .gt-b.last::before { bottom: auto; height: 34px; }
-  .gt-b::after { content: ''; position: absolute; left: 0; top: 26px; width: 52px; height: var(--w); background: var(--c); }
-  .gt-as { --c: var(--gold); } .gt-x { --c: var(--rust); }
-  .gt-as::after, .gt-x::after { background: repeating-linear-gradient(90deg, var(--c) 0 5px, transparent 5px 9px); }
-  .gt-pct { position: absolute; left: 9px; top: 7px; font-size: .78rem; font-weight: 700; }
-  .gt-n { border: 1px solid var(--line); background: #fff; padding: 7px 10px; }
-  .gt-as > .gt-n { border: 1px dashed var(--gold); } .gt-x > .gt-n { border: 1px dashed var(--rust); background: var(--rust-bg); }
-  .gt-h { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem; flex-wrap: wrap; }
-  .gt-h span { color: var(--ink-soft); font-size: .76rem; }
-  .gt-bar { height: 8px; margin-top: 6px; background: var(--emerald-bg); } .gt-bar i { display: block; height: 100%; background: var(--pine); }
-  .gt-as .gt-bar { background: var(--gold-bg); } .gt-as .gt-bar i { background: var(--gold); }
-  .gt-sub { margin: 8px 0 0 14px; }
-  @media (max-width: 720px) { .gt-groups { grid-template-columns: 1fr; gap: 20px; } .gt-root { width: 100%; } .gt-b { padding-left: 46px; } .gt-b::after { width: 46px; } .gt-sub { margin-left: 4px; } }
-  .years button:disabled { opacity: .65; cursor: not-allowed; }
-  .flow { margin: 0 0 12px; padding: 10px 14px; background: var(--gold-bg); border-left: 4px solid var(--gold); font-size: .9rem; line-height: 1.5; }
-  .start-steps { margin: 8px 0 0; padding-left: 22px; line-height: 1.6; }
-  .pl-row { border-top: 1px solid var(--line-soft); padding: 10px 0; }
-  .pl-row .mcq-o { display: inline-block; width: auto; margin: 4px 6px 0 0; }
-  .pl-row strong { margin-right: 8px; }
-  #nav button.locked, .pager .btn:disabled { opacity: .5; cursor: not-allowed; }
-  /* Ly thuyet co ban o dau moi bai (v41) */
-  .ly-thuyet { border-left: 4px solid var(--emerald); }
-  .ly-thuyet .lt-y { font-weight: 600; margin: 0 0 8px; }
-  .ly-thuyet h3 { font-size: .9rem; margin: 12px 0 4px; }
-  .ly-thuyet ul { margin: 0; padding-left: 20px; }
-  .ly-thuyet li { margin-bottom: 4px; }
-  .ly-thuyet .lt-c { font-size: .8rem; color: var(--ink-soft); margin: 10px 0 0; }
-/* V6: chi muc WP */
-.entry h3 .wp{font-size:.72em;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--wp-bg,#e8eef7);color:var(--wp-fg,#2a4a7a);margin-left:6px;white-space:nowrap}
-.lv{font-weight:400;opacity:.7;margin:0 6px 0 4px;font-size:.82em}
-/* v44: danh sach bat tat but toan thu gon */
-details.chon { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px; }
-details.chon > summary { cursor: pointer; padding: 8px 0; font-weight: 600; font-size: .88rem; }
-details.chon[open] > summary { border-bottom: 1px solid var(--line-soft); margin-bottom: 8px; }
-/* v44: dien thoai: dau trang gon, cot dau cua bang dung yen khi cuon ngang */
+/* Thanh ben */
+nav { position: sticky; top: var(--cao-dau); height: calc(100vh - var(--cao-dau)); overflow-y: auto; padding: 20px 12px 28px; font-size: .875rem; }
+.tien-do { padding: 0 8px 16px; margin-bottom: 8px; border-bottom: 1px solid var(--ke); }
+.tien-do p { display: flex; justify-content: space-between; margin: 0 0 6px; font-weight: 600; }
+.tien-do p span { font-weight: 400; color: var(--muc-nhat); }
+.tien-do .vach { height: 6px; border-radius: var(--bo); background: var(--ke); overflow: hidden; }
+.tien-do .vach i { display: block; height: 100%; background: var(--thong); }
+.nhom { margin-bottom: 4px; }
+.nhom > summary { display: flex; justify-content: space-between; gap: 8px; padding: 8px; border-radius: var(--bo); font-weight: 700; color: var(--thong); cursor: pointer; list-style: none; }
+.nhom > summary::-webkit-details-marker { display: none; }
+.nhom > summary::before { content: '▸'; width: 12px; flex: none; }
+.nhom[open] > summary::before { content: '▾'; }
+.nhom > summary .ten { flex: 1; }
+.nhom > summary .so { font-weight: 400; color: var(--muc-nhat); white-space: nowrap; }
+.nhom > summary:hover { background: var(--thong-nhat); }
+nav button[data-l] { display: flex; gap: 8px; align-items: baseline; width: 100%; text-align: left; padding: 6px 8px; border: 0; border-radius: var(--bo); background: transparent; color: var(--muc); line-height: 1.35; cursor: pointer; }
+nav button[data-l]:hover { background: var(--thong-nhat); }
+nav button[data-l] .dau { width: 14px; flex: none; text-align: center; font-size: .8125rem; color: var(--thong); }
+nav button[aria-current=true] { background: var(--thong); color: var(--tren-thong); font-weight: 600; }
+nav button[aria-current=true] .dau { color: var(--tren-thong); }
+nav button.locked { color: var(--muc-nhat); cursor: not-allowed; }
+nav button.locked:hover { background: transparent; }
+.saved { margin: 20px 8px 4px; font-size: .8125rem; color: var(--muc-nhat); }
+#reset { margin: 0 8px; padding: 0; border: 0; background: none; font-size: .8125rem; color: var(--co); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Dau bai */
+.bai-dau { margin-bottom: 20px; }
+.bai-vi { margin: 0 0 4px; font-size: .875rem; color: var(--muc-nhat); }
+.bai-ten { margin: 0; font-size: 1.75rem; color: var(--thong); }
+.flow { margin-bottom: 24px; padding: 10px 16px; background: var(--thong-nhat); border-left: 3px solid var(--thong); border-radius: 0 var(--bo) var(--bo) 0; font-size: .9375rem; }
+.flow .start-steps { margin: 6px 0 0; }
+
+/* Phan trong bai: khong khung, ngan bang khoang trang va duong ke */
+.card { padding: 32px 0 0; margin-top: 32px; border-top: 1px solid var(--ke); }
+.bai-dau + .card, .flow + .card, .card:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.card h2 { margin: 0 0 12px; font-size: 1.125rem; color: var(--thong); }
+.card h3 { margin: 0 0 10px; font-size: 1.125rem; color: var(--thong); }
+.card > p, .entry .why { max-width: none; }
+
+/* Ba loai con khung: ly thuyet, cau hoi, ghi chu */
+.card.ly-thuyet, .card.quiz, .card:has(> .mcq), .card.note { padding: 20px 24px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); }
+.card.ly-thuyet + .card, .card.quiz + .card, .card:has(> .mcq) + .card, .card.note + .card { border-top: 0; padding-top: 0; }
+.card.quiz + .card.quiz, .card.quiz + .card:has(> .mcq), .card:has(> .mcq) + .card.quiz { margin-top: 16px; }
+.card.quiz + .card.quiz, .card.quiz + .card.note, .card:has(> .mcq) + .card.note, .card.quiz + .card:has(> .mcq), .card:has(> .mcq) + .card.quiz, .card.ly-thuyet + .card.quiz { padding-top: 20px; border-top: 1px solid var(--ke); }
+.ly-thuyet { border-left: 3px solid var(--thong) !important; background: var(--nen) !important; }
+.ly-thuyet > summary { font-size: 1.125rem; font-weight: 700; color: var(--thong); cursor: pointer; list-style: none; display: flex; gap: 8px; }
+.ly-thuyet > summary::-webkit-details-marker { display: none; }
+.ly-thuyet > summary::before { content: '▸'; width: 12px; }
+.ly-thuyet[open] > summary::before { content: '▾'; }
+.ly-thuyet[open] > summary { margin-bottom: 12px; }
+.ly-thuyet .lt-y { font-weight: 600; }
+.ly-thuyet h3 { font-size: .9375rem; margin: 14px 0 4px; color: var(--muc); }
+.ly-thuyet .lt-c { font-size: .8125rem; color: var(--muc-nhat); margin: 12px 0 0; }
+
+/* Bang */
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .9375rem; font-variant-numeric: tabular-nums; }
+th { padding: 8px 12px; background: var(--thong-nhat); border-bottom: 1px solid var(--muc); font-size: .875rem; font-weight: 600; text-align: right; white-space: nowrap; }
+th small { font-weight: 400; color: var(--muc-nhat); }
+td { padding: 7px 12px; border-bottom: 1px solid var(--ke); text-align: right; white-space: nowrap; }
+th.l, td.l { text-align: left; white-space: normal; min-width: 140px; }
+td.t, th.t { text-align: left; white-space: normal; min-width: 120px; }
+tbody tr:hover td { background: var(--nen); }
+tr.total td { font-weight: 700; border-top: 1px solid var(--muc); border-bottom: 3px double var(--muc); }
+td.adj, tbody tr:hover td.adj { background: var(--vang-nen); }
+/* v46: cot dau dung yen khi cuon ngang bang rong, ca may tinh va dien thoai */
+.scroll td:first-child, .scroll th:first-child { position: sticky; left: 0; z-index: 1; background: var(--mat); box-shadow: 1px 0 0 var(--ke); }
+.scroll th:first-child { background: var(--thong-nhat); }
+.scroll tbody tr:hover td:first-child { background: var(--nen); }
+.unit { margin: 8px 0 4px; text-align: right; font-size: .8125rem; color: var(--muc-nhat); }
+
+/* But toan */
+.entry { padding-top: 20px; margin-top: 20px; border-top: 1px dashed var(--ke); }
+.card > .entry:first-of-type, .card > h3 + .entry { padding-top: 0; margin-top: 0; border-top: 0; }
+.entry h3 { font-size: 1rem; margin-bottom: 4px; color: var(--muc); }
+.entry .why { color: var(--muc-nhat); font-size: .9375rem; }
+.entry table, .entry .unit { max-width: 620px; }
+.wp { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: var(--bo); background: var(--thong-nhat); color: var(--thong); font-size: .8125rem; font-weight: 600; white-space: nowrap; vertical-align: 2px; }
+.lv { font-weight: 400; color: var(--muc-nhat); margin: 0 6px 0 4px; font-size: .875em; }
+tr.dr td:first-child { color: var(--no); font-weight: 600; }
+tr.cr td:first-child { color: var(--co); font-weight: 600; padding-left: 44px; }
+
+/* Nut */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; margin: 0 6px 6px 0; border: 1px solid var(--thong); border-radius: var(--bo); background: var(--thong); color: var(--tren-thong); font-size: .9375rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+.btn:hover { background: var(--thong-dam); }
+.btn.ghost { background: transparent; color: var(--thong); }
+.btn.ghost:hover { background: var(--thong-nhat); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--ke); }
+.pager .btn { margin: 0; }
+.pager .btn:only-child, .pager .btn[hidden] + .btn { margin-left: auto; }
+
+/* Cau hoi nhap so */
+.quiz label { display: block; margin-bottom: 10px; font-weight: 600; }
+.quiz input { width: 150px; min-height: 40px; padding: 0 10px; margin: 0 6px 6px 0; border: 1px solid var(--muc-nhat); border-radius: var(--bo); background: var(--mat); text-align: right; font-variant-numeric: tabular-nums; vertical-align: top; }
+.quiz .btn { vertical-align: top; }
+.fb:empty { display: none; }
+.fb { display: block; margin-top: 10px; padding: 8px 12px; border-radius: var(--bo); font-size: .9375rem; }
+.fb.ok { background: var(--thong-nhat); color: var(--thong); }
+.fb.no { background: var(--co-nen); color: var(--co); }
+.fb.ok::before { content: '✓ '; font-weight: 700; }
+.fb.no::before { content: '✕ '; font-weight: 700; }
+
+/* Trac nghiem */
+.mcq + .mcq { margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--ke); }
+.mcq-q { font-weight: 600; margin-bottom: 10px; }
+.mcq-o { display: block; width: 100%; min-height: 44px; margin-bottom: 8px; padding: 10px 14px; text-align: left; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); cursor: pointer; }
+.mcq-o:hover { border-color: var(--thong); }
+.mcq-o[aria-pressed=true].ok { background: var(--thong-nhat); border-color: var(--thong); font-weight: 600; }
+.mcq-o[aria-pressed=true].no { background: var(--co-nen); border-color: var(--co); }
+
+/* Ghi chu */
+.note textarea { display: block; width: 100%; min-height: 100px; padding: 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); resize: vertical; }
+.note .hint { margin: 6px 0 0; font-size: .8125rem; color: var(--muc-nhat); }
+
+/* Trang thai, danh sach bat tat */
+.status { padding: 8px 12px; margin-bottom: 12px; border-radius: var(--bo); font-size: .9375rem; }
+.status.ok { background: var(--thong-nhat); color: var(--thong); }
+.status.warn { background: var(--co-nen); color: var(--co); }
+.toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; font-size: .875rem; padding-bottom: 10px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+details.chon { margin: 8px 0 16px; padding: 0 14px; border: 1px solid var(--ke); border-radius: var(--bo); }
+details.chon > summary { padding: 10px 0; font-weight: 600; font-size: .9375rem; cursor: pointer; }
+details.chon[open] > summary { margin-bottom: 10px; border-bottom: 1px solid var(--ke); }
+
+/* Bai 1: phan loai, so do tap doan */
+.pl-row { padding: 12px 0; border-top: 1px solid var(--ke); }
+.pl-row strong { margin-right: 8px; }
+.pl-row .mcq-o { display: inline-block; width: auto; min-height: 40px; margin: 6px 6px 0 0; }
+.classify select { padding: 4px 6px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); }
+.tree { display: grid; gap: 8px; }
+.node { padding: 8px 12px; border: 1px solid var(--muc-nhat); border-radius: var(--bo); background: var(--mat); }
+.node small { display: block; color: var(--muc-nhat); }
+.node.l1 { margin-left: 24px; } .node.l2 { margin-left: 48px; } .node.assoc { border-style: dashed; }
+.matrix td, .matrix th { text-align: center; }
+.matrix td button { width: 100%; min-height: 36px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); cursor: pointer; }
+.matrix td button.diff { background: var(--co-nen); border-color: var(--co); }
+.matrix td button.same { background: var(--thong-nhat); }
+.matrix td button[aria-pressed=true] { outline: 2px solid var(--muc); }
+.gt-root { width: 260px; margin: 0 auto; padding: 10px; border-radius: var(--bo); background: var(--thong); color: var(--tren-thong); text-align: center; }
+.gt-root strong { display: block; font-size: 1.0625rem; } .gt-root small { color: var(--tren-thong-nhat); }
+.gt-stem { width: 2px; height: 18px; margin: 0 auto; background: var(--muc); }
+.gt-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; padding-top: 16px; border-top: 2px solid var(--muc); }
+.gt-groups h3 { margin: 0 0 10px; } .gt-groups h3 small { display: block; font-size: .8125rem; font-weight: 400; color: var(--muc-nhat); }
+.gt-b { position: relative; padding-left: 52px; margin-bottom: 8px; --c: var(--thong); }
+.gt-b::before { content: ''; position: absolute; left: 0; top: -8px; bottom: -8px; width: 2px; background: var(--c); }
+.gt-b.last::before { bottom: auto; height: 34px; }
+.gt-b::after { content: ''; position: absolute; left: 0; top: 26px; width: 52px; height: var(--w); background: var(--c); }
+.gt-as { --c: var(--no); } .gt-x { --c: var(--co); }
+.gt-as::after, .gt-x::after { background: repeating-linear-gradient(90deg, var(--c) 0 5px, transparent 5px 9px); }
+.gt-pct { position: absolute; left: 9px; top: 7px; font-size: .8125rem; font-weight: 700; }
+.gt-n { padding: 7px 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); }
+.gt-as > .gt-n { border: 1px dashed var(--no); } .gt-x > .gt-n { border: 1px dashed var(--co); background: var(--co-nen); }
+.gt-h { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .9375rem; }
+.gt-h span { color: var(--muc-nhat); font-size: .8125rem; }
+.gt-bar { height: 6px; margin-top: 6px; background: var(--thong-nhat); } .gt-bar i { display: block; height: 100%; background: var(--thong); }
+.gt-as .gt-bar { background: var(--nen); } .gt-as .gt-bar i { background: var(--no); }
+.gt-sub { margin: 8px 0 0 14px; }
+
+/* Man hinh hep */
+@media (max-width: 1100px) { main { padding: 28px 28px 56px; } }
 @media (max-width: 760px) {
-  .masthead { padding: 10px 16px; gap: 6px 10px; }
-  .masthead h1 { width: 100%; font-size: 1.1rem; line-height: 1.3; }
-  .years button { margin: 0 4px 0 0; padding: 4px 10px; }
-  #acct { flex: 1; justify-content: flex-end; flex-wrap: nowrap; min-width: 0; }
-  #acct > span:first-child { display: none; }
-  #acct .btn { white-space: nowrap; }
-  #acct .msg { width: auto; order: -1; font-size: .72rem; color: #CFDDD2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-  .notice { font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .scroll td:first-child, .scroll th:first-child { position: sticky; left: 0; z-index: 1; background: var(--card); min-width: 150px; box-shadow: 1px 0 0 var(--line); }
-  .scroll th:first-child { background: var(--emerald-bg); }
-  .scroll tr.changed td:first-child { background: var(--gold-bg); }
+  .masthead { gap: 12px; padding: 0 16px; }
+  .ten-dai { display: none; } .ten-ngan { display: inline; }
+  .masthead h1 { font-size: 1rem; }
+  .years button { padding: 0 10px; }
+  #acct { gap: 10px; }
+  #acct .email { display: none; }
+  #acct .msg { display: none; }
+  .notice { padding: 6px 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #nav-mo { position: sticky; top: var(--cao-dau); z-index: 15; display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 0 16px; border: 0; border-bottom: 1px solid var(--ke); background: var(--mat); font-weight: 600; text-align: left; cursor: pointer; }
+  .layout { display: block; }
+  nav { display: none; }
+  nav.mo { display: block; position: fixed; z-index: 30; inset: calc(var(--cao-dau) + 44px) 0 0 0; top: calc(var(--cao-dau) + 44px); height: auto; background: var(--nen); padding: 12px 12px 32px; border-top: 1px solid var(--ke); }
+  nav button[data-l], .nhom > summary { min-height: 44px; align-items: center; }
+  main { border-left: 0; padding: 20px 16px 48px; }
+  .bai-ten { font-size: 1.375rem; }
+  .card.ly-thuyet, .card.quiz, .card:has(> .mcq), .card.note { padding: 16px; }
+  .btn { min-height: 44px; }
+  tr.cr td:first-child { padding-left: 28px; }
+  .scroll td:first-child, .scroll th:first-child { min-width: 150px; }
+  .gt-groups { grid-template-columns: 1fr; gap: 20px; } .gt-root { width: 100%; }
+  .gt-b { padding-left: 46px; } .gt-b::after { width: 46px; } .gt-sub { margin-left: 4px; }
 }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+@media (max-width: 760px) {
+  .masthead { gap: 8px; padding: 0 12px; }
+  .masthead h1 { font-size: .9375rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .years, #acct .btn { flex: none; white-space: nowrap; }
+  .years button { padding: 0 8px; }
+  #acct .btn { padding: 0 10px; }
+}
+@media (max-width: 760px) { .nam-khoa { display: none; } }
+/* v46: bang nhieu cot (bai 35) cot ten tai khoan rong hon de khong rot 2-3 dong; link bo qua thanh ben cho ban phim */
+@media (min-width: 761px) { .scroll table:has(th:nth-child(6)) td.l, .scroll table:has(th:nth-child(6)) th.l { min-width: 230px; } }
+.skip-link { position: absolute; left: 12px; top: -100px; z-index: 40; padding: 10px 14px; border-radius: var(--bo); background: var(--mat); color: var(--thong); font-weight: 600; }
+.skip-link:focus { top: 8px; }
 
 </style>
 <script>try{if(!JSON.parse(localStorage.getItem('hoc-hop-nhat-phien')))throw 0}catch(e){document.documentElement.classList.add('khoa')}</script>
 <style>
+  /* v46 2026-11-16 (Ngo Ba Hung): bien giao dien dung chung cho ca hai trang, dat o day vi build.py chen file nay vao ca hai */
+  :root {
+    --nen: #F3F6F4; --mat: #FFFFFF; --muc: #16302A; --muc-nhat: #55675F;
+    --thong: #123B31; --thong-dam: #0C2A22; --thong-nhat: #E4EFE7; --ke: #D5DED8;
+    --vang-nen: #FBF0C9; --no: #1D4E89; --co: #A5322A; --co-nen: #F8E9E5;
+    --tren-thong: #FFFFFF; --tren-thong-nhat: #C9DCD1;
+    --bo: 4px; --cao-dau: 56px;
+    --chu: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
   /* Cong dang nhap (v40): chua dang nhap thi an moi thu tru form */
   html.khoa body > :not(#cong) { display: none !important; }
-  #cong { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: #E9EFE3; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #17312A; }
-  .cong-the { width: 100%; max-width: 380px; background: #FBFCF7; border: 1px solid #C4D2C0; border-top: 4px solid #123B31; border-radius: 3px; padding: 24px; }
-  .cong-the h1 { font-family: 'Sitka Text', Cambria, Georgia, serif; font-size: 1.35rem; font-weight: 600; margin: 0 0 6px; }
-  .cong-the p { margin: 0 0 14px; font-size: .9rem; color: #4C6158; }
-  .cong-the label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 12px; }
-  .cong-the input { display: block; width: 100%; margin-top: 4px; font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid #C4D2C0; border-radius: 3px; background: #fff; color: #17312A; box-sizing: border-box; }
-  .cong-the button { width: 100%; font: inherit; font-weight: 600; padding: 10px; margin-top: 4px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
-  .cong-the button:disabled { opacity: .6; cursor: wait; }
-  .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
-  .cong-the .cong-tb { color: #A5322A; margin: 12px 0 0; min-height: 1.2em; }
-  .cong-the .cong-phu { font-size: .8rem; margin: 6px 0 0; }
-  /* Nut dang xuat o trang dau (v42) */
-  #cong-ra { position: fixed; top: 10px; right: 12px; z-index: 50; display: flex; gap: 8px; align-items: center; font: .8rem 'Segoe UI', -apple-system, Arial, sans-serif; background: #FBFCF7; border: 1px solid #C4D2C0; border-radius: 3px; padding: 4px 4px 4px 10px; color: #17312A; }
-  #cong-ra button { font: inherit; padding: 4px 10px; border: 1px solid #123B31; border-radius: 3px; background: #123B31; color: #fff; cursor: pointer; }
-  #cong-ra button:focus-visible { outline: 3px solid #1B6B50; outline-offset: 2px; }
-  .masthead #cong-ra { position: static; align-self: center; }
-  .masthead:has(#cong-ra) > h1 { margin-right: auto; }
-  /* v44: dien thoai: nut nam tren tieu de, khong noi de len chu */
-  @media (max-width: 600px) {
-    #cong-ra { position: static; justify-content: flex-end; border: 0; background: none; padding: 8px 16px 0; }
-    #cong-ra span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: #4C6158; }
+  #cong { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--nen); font-family: var(--chu); color: var(--muc); }
+  .cong-the { width: 100%; max-width: 380px; background: var(--mat); border: 1px solid var(--ke); border-top: 4px solid var(--thong); border-radius: var(--bo); padding: 28px 24px 24px; }
+  .cong-the h1 { font-size: 1.375rem; font-weight: 700; line-height: 1.25; margin: 0 0 6px; }
+  .cong-the p { margin: 0 0 16px; font-size: .9375rem; color: var(--muc-nhat); }
+  .cong-the label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 14px; }
+  .cong-the input { display: block; width: 100%; margin-top: 6px; font: inherit; font-size: 1rem; font-weight: 400; padding: 9px 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); color: var(--muc); box-sizing: border-box; }
+  .cong-the button { width: 100%; min-height: 44px; font: inherit; font-size: 1rem; font-weight: 600; margin-top: 4px; border: 1px solid var(--thong); border-radius: var(--bo); background: var(--thong); color: var(--tren-thong); cursor: pointer; }
+  .cong-the button:hover { background: var(--thong-dam); }
+  .cong-the button:disabled { opacity: .5; cursor: wait; }
+  .cong-the input:focus-visible, .cong-the button:focus-visible { outline: 3px solid var(--thong); outline-offset: 2px; }
+  .cong-the .cong-tb { color: var(--co); margin: 12px 0 0; min-height: 1.2em; }
+  .cong-the .cong-phu { font-size: .8125rem; margin: 8px 0 0; }
+  /* Nut dang xuat o trang dau (v42, v45: nam trong thanh tieu de) */
+  #cong-ra { position: fixed; top: 10px; right: 12px; z-index: 50; display: flex; gap: 12px; align-items: center; font: .875rem var(--chu); color: var(--muc); min-width: 0; }
+  #cong-ra span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #cong-ra button { font: inherit; font-weight: 600; min-height: 36px; padding: 0 14px; border-radius: var(--bo); cursor: pointer; white-space: nowrap; border: 1px solid var(--thong); background: var(--thong); color: var(--tren-thong); }
+  #cong-ra button:focus-visible { outline: 3px solid var(--thong); outline-offset: 2px; }
+  .masthead #cong-ra { position: static; margin-left: auto; color: var(--tren-thong-nhat); }
+  .masthead #cong-ra button { background: transparent; border-color: var(--tren-thong-nhat); color: var(--tren-thong); }
+  .masthead #cong-ra button:hover { background: var(--thong-dam); }
+  .masthead #cong-ra button:focus-visible { outline-color: var(--tren-thong); }
+  @media (max-width: 760px) {
+    .masthead #cong-ra span { display: none; }
   }
 </style>
 </head>
@@ -352,13 +411,16 @@ else if (sess.expires_at < Date.now()) freshSess().catch(() => {});
 // Cho trang dung xong moi xet, vi khung #acct cua trang bai hoc nam sau doan script nay
 document.addEventListener('DOMContentLoaded', nutDangXuat);
 </script>
+<!-- v46 2026-11-16 (Ngo Ba Hung): thanh dau trang mot dong, nut mo danh sach bai tren dien thoai -->
+<a class="skip-link" href="#main">Đến nội dung bài</a>
 <div id="app">
-  <div class="masthead">
-    <h1>Học hợp nhất báo cáo tài chính</h1>
+  <header class="masthead">
+    <h1><a href="index.html"><span class="ten-dai">Học hợp nhất báo cáo tài chính</span><span class="ten-ngan">Học hợp nhất BCTC</span></a></h1>
     <div class="years" id="years" role="group" aria-label="Năm đang làm"></div>
     <form id="acct" hidden></form>
-  </div>
+  </header>
   <p class="notice" id="notice"></p>
+  <button type="button" id="nav-mo" aria-controls="nav" aria-expanded="false"></button>
   <div class="layout">
     <nav id="nav" aria-label="Các bài học"></nav>
     <main id="main" tabindex="-1"></main>
@@ -772,15 +834,18 @@ const LY_THUYET = {
     c: 'Thông tư 202/2014/TT-BTC.',
   },
 };
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): khung ly thuyet gap duoc, giu trang thai khi chuyen bai
+let ltMo = true;
 function lyThuyet() {
   const x = LY_THUYET[LESSONS[lesson].t];
   if (!x) return '';
-  return `<div class="card ly-thuyet"><h2>Lý thuyết cơ bản</h2>
+  return `<details class="card ly-thuyet" ${ltMo ? 'open' : ''}><summary>Lý thuyết cơ bản</summary>
     <p class="lt-y">${x.y}</p>
     <h3>Nguyên tắc</h3><ul>${x.n.map(s => `<li>${s}</li>`).join('')}</ul>
     ${x.b ? `<h3>Bút toán khung</h3><ul class="lt-bt">${x.b.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
-    <p class="lt-c">Căn cứ: ${x.c}</p></div>`;
+    <p class="lt-c">Căn cứ: ${x.c}</p></details>`;
 }
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 const YEARS = D.nam;
 let year = 2024, lesson = 0, chot = false;
 const off = new Set();
@@ -814,10 +879,16 @@ function tableUnit(head, rows) {
   if (!rows.some(r => r.some(c => typeof c === 'number'))) return '';
   return UNIT(UNIT_RIENG[head[0]] || 'triệu VND');
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): cot co chu dai thi ca cot (ke ca o chu ngan va tieu de) can trai, khong lech kieu trong mot cot
 function table(head, rows, totalLast) {
-  return `${tableUnit(head, rows)}<div class="scroll"><table><thead><tr>${head.map((h, i) => `<th class="${i ? '' : 'l'}">${h}</th>`).join('')}</tr></thead><tbody>${
-    rows.map((r, i) => `<tr class="${totalLast && i === rows.length - 1 ? 'total' : ''}">${r.map((c, j) => j ? `<td${typeof c === 'string' && c.length > 14 && c[0] !== '<' ? ' class="t"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>` : `<td class="l">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const dai = c => typeof c === 'string' && c.length > 14 && c[0] !== '<';
+  const so = c => typeof c === 'number' || (typeof c === 'string' && /^[\d.,%()×x+\-−–\s/]*$/.test(c));
+  const cotChu = head.map((h, j) => j && (rows.some(r => dai(r[j])) || rows.filter(r => typeof r[j] === 'string' && r[j][0] !== '<' && !so(r[j])).length > rows.filter(r => so(r[j]) && r[j] !== '–').length));
+  const laChu = (c, j) => typeof c === 'string' && c[0] !== '<' && (dai(c) || (cotChu[j] && c !== '–'));
+  return `${tableUnit(head, rows)}<div class="scroll"><table><thead><tr>${head.map((h, i) => `<th class="${i ? (cotChu[i] ? 't' : '') : 'l'}">${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map((r, i) => `<tr class="${totalLast && i === rows.length - 1 ? 'total' : ''}">${r.map((c, j) => j ? `<td${laChu(c, j) ? ' class="t"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>` : `<td class="l">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 const IC_MUC = 10;
 const IC = [
   { id: 'a', thu: 'B', tra: 'M', pt: 200, ptr: 180, loai: 'Bút toán', vd: 'Đại An chuyển tiền 20 ngày cuối năm, Cát Tường chưa nhận.', bt: [['Nợ 113 – Tiền đang chuyển', 20, 0], ['Có 136 – Phải thu nội bộ', 0, 20]], ptS: 180, ptrS: 180 },
@@ -907,7 +978,7 @@ function groupTree() {
   });
   return `<div class="gt-root"><strong>Tập đoàn Đại An</strong><small>Công ty mẹ · ${D.linh_vuc ? D.linh_vuc.M : ''}</small></div><div class="gt-stem"></div>
     <div class="gt-groups"><div><h3>Công ty con <small>Đường liền: hợp nhất toàn bộ</small></h3>${subs.map((e, i) => row(e, 'M', i === subs.length - 1)).join('')}</div>
-    <div><h3>Công ty liên kết <small>Đường đứt vàng: phương pháp vốn chủ, không cộng ngang</small></h3>${as.map((e, i) => row(e, 'M', i === as.length - 1)).join('')}</div></div>
+    <div><h3>Công ty liên kết <small>Đường đứt xanh: phương pháp vốn chủ, không cộng ngang</small></h3>${as.map((e, i) => row(e, 'M', i === as.length - 1)).join('')}</div></div>
     <p style="margin-top:12px">Số trên đường là tỷ lệ đơn vị đó trực tiếp nắm, đường càng đậm thì tỷ lệ càng cao. Thanh trong ô là tổng biểu quyết của tập đoàn. Ô đỏ đường đứt là <strong>đầu tư chéo</strong>: một đơn vị khác trong tập đoàn cũng nắm cùng công ty đó.</p>
     <h3 style="margin-top:14px">Các khoản đầu tư chéo</h3>${table(['Công ty', 'Đơn vị nắm và tài khoản đang ghi', 'Tổng biểu quyết', 'Lợi ích của Đại An', 'Trên tập đoàn'], crossRows)}
     <p style="margin-top:10px">Biểu quyết là phép cộng, lợi ích nhân theo chuỗi. Khoản nào đang ghi 228 thì được phân loại lại ở bài Đầu tư và LTTM, rồi tính NCI theo chuỗi ở bài NCI. Chi tiết cách làm ở bài Tính tỷ lệ và phân loại lại.</p>`;
@@ -1077,7 +1148,7 @@ const LESSONS = [
       ${box('Theo VAS 07', table(['Việc', 'Quy định'], [['Ảnh hưởng đáng kể', 'Từ 20% quyền biểu quyết, trừ khi có quy định hoặc thỏa thuận khác; xét cả đại diện HĐQT, tham gia chính sách, giao dịch quan trọng'], ['BCTC riêng', 'Giá gốc'], ['Hợp nhất', 'Vốn chủ, trừ khi dự kiến thanh lý dưới 12 tháng hoặc bị hạn chế khắt khe dài hạn'], ['Lỗ vượt giá trị đầu tư', 'Ghi đến 0 rồi dừng, trừ khi có nghĩa vụ trả thay; lãi sau đó chỉ ghi khi đã bù hết phần lỗ chưa ghi'], ['Báo cáo khác ngày', 'Điều chỉnh các giao dịch và sự kiện trọng yếu trong khoảng lệch'], ['Trình bày', 'Khoản mục dài hạn riêng; phần lãi, lỗ là khoản mục riêng; danh sách liên kết và tỷ lệ']]) + '<p style="margin-top:10px">VAS 07 đoạn 12 nói phân bổ dần chênh lệch giữa giá gốc và phần sở hữu; TT202 Điều 62 nói LTTM của liên kết không phân bổ. Bài theo TT202, người học nên biết hai nguồn nói khác nhau.</p>')}
       ${quiz('a-as', 'Liên kết lỗ 5.000, nhà đầu tư giữ 30%, giá trị đầu tư đang 1.200, không có nghĩa vụ trả thay. Ghi nhận phần lỗ bao nhiêu?', 1200, '30% × 5.000 = 1.500 nhưng chỉ ghi đến khi giá trị đầu tư bằng 0.')}` },
   { t: 'Thực hành bảng hợp nhất', r: () => `<div class="card"><h2>Bảng hợp nhất năm ${year}</h2>
-      <p>Tắt hoặc bật từng bút toán để xem số hợp nhất thay đổi. Dòng được tô màu là dòng có điều chỉnh.</p>
+      <p>Tắt hoặc bật từng bút toán để xem số hợp nhất thay đổi. Ô được tô màu là số điều chỉnh.</p>
       <p>Bảng xếp cột như sheet Input Data của RPT-001 (bảng hợp nhất tổng trong bộ hồ sơ làm việc): <strong>Preliminary</strong> là cộng ngang số các đơn vị, <strong>AJE</strong> là bút toán điều chỉnh lấy từ từng WP khoản mục (chỉ mục ghi cạnh tên bút toán), <strong>Final</strong> = Preliminary + AJE.</p>
       <button class="btn ghost" data-all="off">Tắt hết</button><button class="btn ghost" data-all="on">Bật hết</button>
       <details class="chon" ${chonMo ? 'open' : ''}><summary>Chọn từng bút toán (${entries().length})</summary><div class="toggles">${entries().map(e => `<label><input type="checkbox" data-e="${e.id}" ${off.has(year + e.id) ? '' : 'checked'}> <span>${e.id}. ${e.tieu_de}</span></label>`).join('')}</div></details>
@@ -1416,7 +1487,7 @@ function renderSheet() {
     tot += v;
     if (['136', '336', '1283NB', '341NB', '1121TV', '341TV', '221'].includes(a.ma) && Math.abs(v) > 1e-6) left.push(a.ten);
     if (!base && !dr && !cr) return '';
-    return `<tr class="${dr || cr ? 'changed' : ''}"><td class="l">${a.ma} – ${a.ten}</td><td>${fmt(base)}</td><td>${fmt(dr)}</td><td>${fmt(cr)}</td><td>${fmt(v)}</td></tr>`;
+    return `<tr><td class="l">${a.ma} – ${a.ten}</td><td>${fmt(base)}</td><td${dr ? ' class="adj"' : ''}>${fmt(dr)}</td><td${cr ? ' class="adj"' : ''}>${fmt(cr)}</td><td>${fmt(v)}</td></tr>`; // v46 (Ngo Ba Hung): to vang o so bi dieu chinh, khong to ca dong
   }).join('');
   el.innerHTML = `<div class="status ${left.length ? 'warn' : 'ok'}" role="status">${left.length ? 'Còn số dư nội bộ chưa loại trừ: ' + left.join(', ') + '.' : 'Không còn số dư đầu tư và nội bộ.'}</div>
     ${UNIT('triệu VND')}<div class="scroll"><table><thead><tr><th class="l">Tài khoản</th><th>Preliminary<br><small>cộng ngang</small></th><th>AJE Nợ</th><th>AJE Có</th><th>Final<br><small>hợp nhất</small></th></tr></thead>
@@ -1426,8 +1497,9 @@ function renderSheet() {
 function markEntries() {
   document.querySelectorAll('#main td:first-child').forEach(td => {
     const t = td.textContent.trim();
-    if (/^Nợ\s/.test(t)) td.parentElement.classList.add('dr');
-    else if (/^Có\s/.test(t)) td.parentElement.classList.add('cr');
+    // v46 (Ngo Ba Hung): chi dong but toan (No/Co + so hieu tai khoan), khong bat cau chu thuong bat dau bang "Co"
+    if (/^Nợ\s+[0-9A-Z]/.test(t)) td.parentElement.classList.add('dr');
+    else if (/^Có\s+[0-9A-Z]/.test(t)) td.parentElement.classList.add('cr');
   });
 }
 new MutationObserver(markEntries).observe(document.getElementById('main'), { childList: true, subtree: true });
@@ -1524,7 +1596,9 @@ function drawAcct() {
   const f = document.getElementById('acct');
   if (!SB_ON || !sess) { f.hidden = true; return; }
   f.hidden = false;
-  f.innerHTML = `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
+  // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): trang thai luu, email, nut tren mot dong
+  f.innerHTML = `<span class="msg" role="status">${esc(cloudMsg)}</span><span class="email">${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button>`;
+  //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 }
 function applyState(p) {
   seen.clear(); off.clear(); labOff.clear(); xoff.clear(); quizDone.clear();
@@ -1596,17 +1670,59 @@ function loadProgress() {
     return applyState(p);
   } catch (e) { return 0; }
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): nhom bai cho thanh ben; bai chua co ten nhom thuoc nhom cua bai truoc, bai dau la Co ban
+function nhomBai() {
+  const ds = [];
+  LESSONS.forEach((l, i) => { if (!i || l.g) ds.push({ ten: l.g || 'Cơ bản', bai: [] }); ds[ds.length - 1].bai.push(i); });
+  return ds;
+}
+const nhomMo = {};
+// Chi ghi khi nguoi hoc bam vao ten nhom; nhom tu mo vi chua bai dang hoc thi khong ghi
+document.addEventListener('click', ev => { const sm = ev.target.closest('.nhom > summary'); if (sm) nhomMo[sm.parentElement.dataset.nhom] = !sm.parentElement.open; });
+document.addEventListener('toggle', ev => { if (ev.target.classList && ev.target.classList.contains('ly-thuyet')) ltMo = ev.target.open; }, true);
+// Dien thoai: danh sach bai mo thanh tam phu tu nut "Bai N tren 37"
+function dongNav(traVe) {
+  const n = document.getElementById('nav'), mo = document.getElementById('nav-mo');
+  if (!n.classList.contains('mo')) return;
+  n.classList.remove('mo'); mo.setAttribute('aria-expanded', 'false');
+  if (traVe) mo.focus();
+}
+document.getElementById('nav-mo').addEventListener('click', () => {
+  const n = document.getElementById('nav'), mo = document.getElementById('nav-mo');
+  if (n.classList.contains('mo')) return dongNav();
+  n.classList.add('mo'); mo.setAttribute('aria-expanded', 'true');
+  const c = n.querySelector('[aria-current=true]'); c.scrollIntoView({ block: 'center' }); c.focus();
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') dongNav(true); });
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 function render(focus) {
-  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'disabled title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025 (chưa mở)' : y}</button>`).join('');
-  document.getElementById('nav').innerHTML = LESSONS.map((l, i) => `${l.g ? `<div class="group">${l.g}</div>` : ''}<button type="button" data-l="${i}" aria-current="${i === lesson}"${i && !pl1Done() ? ' class="locked" aria-disabled="true" title="Phân loại xong ở bài 1 để mở"' : ''}>${i + 1}. ${l.t}</button>`).join('') + `<p class="saved">${sess ? 'Tiến độ lưu theo tài khoản.' : 'Tiến độ tự lưu trên trình duyệt này.'}</p><button type="button" id="reset">Xóa tiến độ đã lưu</button>`;
-  const main = document.getElementById('main');
+  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'disabled title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025<span class="nam-khoa"> (chưa mở)</span>' : y}</button>`).join(''); // v46 (Ngo Ba Hung): dien thoai an chu "(chua mo)" de khong tran
+  // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): thanh ben chia nhom gap duoc, dau da hoc, thanh tien do; dau bai co vi tri va ten bai
   seen.add(seenKey(lesson, year));
-  main.innerHTML = lyThuyet() + yearBanner() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
+  const need = needKeys(), xong = need.filter(k => seen.has(k)).length;
+  const nhom = nhomBai(), cua = nhom.find(g => g.bai.includes(lesson));
+  const nutBai = i => {
+    const khoa = i && !pl1Done(), da = seen.has(seenKey(i, year)), dang = i === lesson;
+    const dau = khoa ? '🔒<span class="an">đang khóa</span>' : dang ? '●<span class="an">đang mở</span>' : da ? '✓<span class="an">đã học</span>' : '';
+    return `<button type="button" data-l="${i}" aria-current="${dang}"${khoa ? ' class="locked" aria-disabled="true" title="Phân loại xong ở bài 1 để mở"' : ''}><span class="dau" aria-hidden="${!dau}">${dau}</span><span>${i + 1}. ${LESSONS[i].t}</span></button>`;
+  };
+  document.getElementById('nav').innerHTML = `<div class="tien-do"><p>Tiến độ <span>${xong}/${need.length}</span></p><div class="vach" role="progressbar" aria-label="Tiến độ học" aria-valuemin="0" aria-valuemax="${need.length}" aria-valuenow="${xong}"><i style="width:${need.length ? xong / need.length * 100 : 0}%"></i></div></div>`
+    + nhom.map(g => `<details class="nhom" data-nhom="${g.ten}" ${g === cua || nhomMo[g.ten] ? 'open' : ''}><summary><span class="ten">${g.ten}</span><span class="so">${g.bai.filter(i => seen.has(seenKey(i, year))).length}/${g.bai.length}</span></summary>${g.bai.map(nutBai).join('')}</details>`).join('')
+    + `<p class="saved">${sess ? 'Tiến độ lưu theo tài khoản.' : 'Tiến độ tự lưu trên trình duyệt này.'}</p><button type="button" id="reset">Xóa tiến độ đã lưu</button>`;
+  const mo = document.getElementById('nav-mo');
+  mo.innerHTML = `<span>Bài ${lesson + 1} trên ${LESSONS.length}: ${LESSONS[lesson].t}</span><span aria-hidden="true">▾</span>`;
+  dongNav();
+  const main = document.getElementById('main');
+  main.innerHTML = `<header class="bai-dau"><p class="bai-vi">Bài ${lesson + 1} trên ${LESSONS.length} · ${cua.ten}</p><h2 class="bai-ten">${LESSONS[lesson].t}</h2></header>` + yearBanner() + lyThuyet() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
     <button class="btn ghost" data-l="${lesson - 1}" ${lesson ? '' : 'hidden'}>← Bài trước</button>
     <button class="btn" data-l="${lesson + 1}" ${lesson < LESSONS.length - 1 ? '' : 'hidden'} ${lesson === 0 && !pl1Done() ? 'disabled' : ''}>${lesson === 0 && !pl1Done() ? 'Phân loại đúng hết để sang bài sau' : 'Bài sau →'}</button></div>`;
+  // v46 (Ngo Ba Hung): the dau bai co tieu de trung ten bai thi an, tranh hai tieu de giong nhau
+  const h2Dau = main.querySelector('.card > h2');
+  if (h2Dau && h2Dau.textContent.trim() === LESSONS[lesson].t) h2Dau.hidden = true;
   renderSheet();
   restoreQuizzes();
   document.querySelector('#nav [aria-current=true]').scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
   if (focus) { main.focus({ preventScroll: true }); window.scrollTo(0, 0); }
 }
 document.addEventListener('click', ev => {
@@ -1690,7 +1806,7 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('change', saveProgress);
 window.addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(saveProgress, 300); }, { passive: true });
-document.getElementById('notice').textContent = D.ghi_chu;
+document.getElementById('notice').textContent = D.ghi_chu.replace(/^SỐ LIỆU GIẢ LẬP/, 'Số liệu giả lập'); // v46 (Ngo Ba Hung): bo viet hoa toan bo
 const savedScroll = loadProgress();
 drawAcct();
 render();
