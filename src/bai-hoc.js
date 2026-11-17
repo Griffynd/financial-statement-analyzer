@@ -73,11 +73,11 @@ function overview() {
   const YS = YEARS.filter(y => chot || y === 2024);
   const per = (label, f) => [label, ...YS.map(f)];
   
-  return `<div class="card"><h3>Tóm tắt bộ dữ liệu năm ${year}</h3>
+  return `<div class="card" data-ghi="tomtat"><h3>Tóm tắt bộ dữ liệu năm ${year}</h3>
     <p>Đây là số liệu giả lập, đơn vị triệu VND, ${chot ? 'gồm hai năm ' + YEARS.join(' và ') : 'bắt đầu với năm 2024; năm 2025 mở sau khi chốt số'}. Hợp nhất nhỏ hơn cộng ngang vì đã loại các quan hệ nội bộ.</p>
     ${table(['Đơn vị', 'Doanh thu', 'Lợi nhuận sau thuế', 'Tổng tài sản'], [...CONSOL.map(e => [short(e), ...num(e)]), ['Cộng ngang', ...sum], ['Hợp nhất', ...keyNums(D.hop_nhat[year])]], true)}
     <h3 style="margin-top:14px">Công ty liên kết, không nằm trong cộng ngang</h3>${table(['Đơn vị', 'Doanh thu', 'Lợi nhuận sau thuế', 'Tổng tài sản', 'Tỷ lệ'], ASSOC.map(e => [short(e), ...num(e), Math.round(D.lien_ket[e].ty_le * 100) + '%']))}<p style="margin-top:10px">Tập đoàn chỉ ghi phần lãi theo tỷ lệ sở hữu của từng công ty liên kết.</p></div>
-    <div class="card"><h3>Quan hệ nội bộ cần xử lý</h3>
+    <div class="card" data-ghi="quanhe"><h3>Quan hệ nội bộ cần xử lý</h3>
     ${table(['Nội dung', ...YS.map(String)], [
       per('Doanh thu bán hàng nội bộ', y => entrySum(y, ['E05'])),
       per('Lãi chưa thực hiện trong tồn kho cuối năm', y => entrySum(y, ['E07'])),
@@ -168,7 +168,7 @@ function plWhy(e) {
   const alone = b.length > 1 && b[0].dv === 'M' && b[0].ty_le < .2 ? ` Riêng Đại An nắm trực tiếp chỉ ${pc1(b[0].ty_le)}, nếu chỉ nhìn phần trực tiếp sẽ nhầm là đầu tư khác.` : '';
   return `${buoc1} ${buoc2}${alone} Đáp án: ${r.toLowerCase()}.`;
 }
-const plRule = () => `<div class="card"><h3>Cách phân loại: tính sở hữu trước, rồi xét biểu quyết</h3>
+const plRule = () => `<div class="card" data-ghi="cachpl"><h3>Cách phân loại: tính sở hữu trước, rồi xét biểu quyết</h3>
   ${table(['Bước', 'Tính gì', 'Cách tính'], [
     ['1', 'Tỷ lệ sở hữu (lợi ích) của Đại An', 'Phần Đại An nắm trực tiếp, cộng với tích theo chuỗi: sở hữu của Đại An tại đơn vị trung gian × tỷ lệ đơn vị trung gian nắm. Gián tiếp là nhân, không cộng thẳng.'],
     ['2', 'Phân loại sơ bộ theo sở hữu', 'Trên 50% công ty con, từ 20% đến 50% liên kết, dưới 20% đầu tư khác.'],
@@ -193,7 +193,7 @@ function plainTree() {
 }
 function plExercise() {
   const n = plKeys().filter(e => pl1[e] === plRight(e)).length;
-  return plRule() + `<div class="card"><h2>Tự phân loại trước</h2><p>Dựa vào sơ đồ, chọn phân loại trên tập đoàn cho từng công ty. Chọn sai sẽ hiện giải thích, chọn lại cho đúng. Đúng hết ${plKeys().length} công ty thì mở được bài tiếp theo.</p>
+  return plRule() + `<div class="card" data-ghi="tupl"><h2>Tự phân loại trước</h2><p>Dựa vào sơ đồ, chọn phân loại trên tập đoàn cho từng công ty. Chọn sai sẽ hiện giải thích, chọn lại cho đúng. Đúng hết ${plKeys().length} công ty thì mở được bài tiếp theo.</p>
     <div class="status ${n === plKeys().length ? 'ok' : 'warn'}" role="status">Đã đúng ${n}/${plKeys().length}.</div>
     ${plKeys().map(e => { const a = pl1[e], ok = a === plRight(e);
       return `<div class="pl-row"><strong>${short(e)}</strong>${lv(e)}${PL_OPT.map(o => `<button type="button" class="mcq-o" data-pl="${e}" data-plo="${o}" aria-pressed="${a === o}">${o}</button>`).join('')}
@@ -687,11 +687,30 @@ const notes = {};
 // SB_URL, SB_KEY, sess, keepSess, freshSess, dropSess nam o src/dang-nhap.js (v40)
 let cloudTimer, cloudMsg = '';
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const noteHtml = () => `<div class="card note"><h2>Ghi chú của tôi</h2>
-  <textarea data-note="${seenKey(lesson, year)}" aria-label="Ghi chú cho bài này">${esc(notes[seenKey(lesson, year)] || '')}</textarea>
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v47): ghi chu gap/mo o tung phan; phan da co ghi chu thi mo san; nut an/hien toan bo ghi chu
+let anGhi = false;
+// ghiMo: nguoi hoc tu mo/gap o nao thi nho trong phien, trang ve lai khong tu gap; chua dong toi thi mo khi da co ghi chu
+const ghiMo = {};
+document.addEventListener('toggle', ev => { if (ev.target.classList && ev.target.classList.contains('ghi-phan')) ghiMo[ev.target.dataset.k] = ev.target.open; }, true);
+const coGhi = k => notes[k] ? ' (đã có)' : '', coGhiLT = k => notes[k] ? '📝 có ghi chú' : '';
+// doc: nhan rieng cho trinh doc man hinh (co ten phan), de cac o ghi chu khong trung nhan
+const ghiPhan = (k, nhan, doc) => `<details class="ghi-phan" data-k="${k}"${(k in ghiMo ? ghiMo[k] : notes[k]) ? ' open' : ''}><summary>📝 ${nhan}<span class="co">${coGhi(k)}</span></summary><textarea data-note="${k}" aria-label="${esc(doc || nhan)}">${esc(notes[k] || '')}</textarea></details>`;
+// Bo qua card co id: noi dung card do bi ve lai bang innerHTML (vd #ic-detail) nen ghi chu se mat
+// Bai 1 doi 2 phan sau khi phan loai xong: 4 phan do co data-ghi lam khoa rieng, khong dung so thu tu
+function ganGhiPhan(main) {
+  main.querySelectorAll(':scope > .card:not(.note):not([id])').forEach((c, i) => {
+    const k = seenKey(lesson, year) + '#' + (c.dataset.ghi || i), h = c.querySelector(':scope > summary, h2, h3');
+    c.insertAdjacentHTML('beforeend', ghiPhan(k, 'Ghi chú phần này', h ? 'Ghi chú phần: ' + h.textContent.trim() : 'Ghi chú phần thứ ' + (i + 1)));
+    // Ly thuyet gap lai thi o ghi chu ben trong bi giau theo: bao o dong tieu de
+    if (c.matches('.ly-thuyet')) c.querySelector(':scope > summary').insertAdjacentHTML('beforeend', `<span class="co">${coGhiLT(k)}</span>`);
+  });
+}
+// Ghi chu cu cua ca bai giu nguyen khoa, doi thanh "Ghi chu chung cua bai"
+const noteHtml = () => `<div class="card note">${ghiPhan(seenKey(lesson, year), 'Ghi chú chung của bài')}
   <p class="hint">${sess ? 'Ghi chú lưu theo tài khoản ' + esc(sess.email) + '.' : 'Ghi chú lưu trên trình duyệt này. Đăng nhập để lưu theo tài khoản.'}</p></div>`;
+//--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v47) ---*
 function stateNow() {
-  return { seen: [...seen], pl1, chot, year, lesson, scroll: window.scrollY, off: [...off], labOff: [...labOff], xoff: [...xoff], calV, pickAns, icAns, quizV, quizDone: [...quizDone], mcqAns, notes };
+  return { seen: [...seen], pl1, chot, year, lesson, scroll: window.scrollY, off: [...off], labOff: [...labOff], xoff: [...xoff], calV, pickAns, icAns, quizV, quizDone: [...quizDone], mcqAns, notes, anGhi }; // v47 (Ngo Ba Hung): them anGhi
 }
 async function sbFetch(path, opt = {}) {
   const r = await fetch(SB_URL + path, { ...opt, headers: { apikey: SB_KEY, 'Content-Type': 'application/json', ...(sess ? { Authorization: 'Bearer ' + sess.access_token } : {}), ...(opt.headers || {}) } });
@@ -769,6 +788,7 @@ function applyState(p) {
   Object.assign(quizV, p.quizV || {});
   Object.assign(mcqAns, p.mcqAns || {});
   Object.assign(notes, p.notes || {});
+  anGhi = !!p.anGhi; // v47 (Ngo Ba Hung)
   (p.quizDone || []).forEach(x => quizDone.add(x));
   return p.scroll || 0;
 }
@@ -792,7 +812,15 @@ document.addEventListener('click', async ev => {
   dropSess();
   location.reload();
 });
-document.addEventListener('input', ev => { if (ev.target.dataset.note) notes[ev.target.dataset.note] = ev.target.value; });
+// v47 (Ngo Ba Hung): go xong cap nhat ngay chu "(da co)" va dau o dong tieu de ly thuyet
+document.addEventListener('input', ev => {
+  const k = ev.target.dataset.note;
+  if (!k) return;
+  notes[k] = ev.target.value;
+  const d = ev.target.closest('.ghi-phan'), lt = d.parentElement.querySelector(':scope > summary > .co');
+  d.querySelector('.co').textContent = coGhi(k);
+  if (lt) lt.textContent = coGhiLT(k);
+});
 //--- Ket thuc sua Ngo Ba Hung 2026-11-11 (V36) ---*
 function checkQuiz(t) {
   const id = t.dataset.quiz, fb = document.getElementById(id + '-fb');
@@ -865,12 +893,13 @@ function render(focus) {
   mo.innerHTML = `<span>Bài ${lesson + 1} trên ${LESSONS.length}: ${LESSONS[lesson].t}</span><span aria-hidden="true">▾</span>`;
   dongNav();
   const main = document.getElementById('main');
-  main.innerHTML = `<header class="bai-dau"><p class="bai-vi">Bài ${lesson + 1} trên ${LESSONS.length} · ${cua.ten}</p><h2 class="bai-ten">${LESSONS[lesson].t}</h2></header>` + yearBanner() + lyThuyet() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
+  main.innerHTML = `<header class="bai-dau"><p class="bai-vi">Bài ${lesson + 1} trên ${LESSONS.length} · ${cua.ten}</p><h2 class="bai-ten">${LESSONS[lesson].t}</h2><button type="button" class="btn ghost nut-ghi" id="an-ghi" aria-pressed="${anGhi}">${anGhi ? '📝 Hiện ghi chú' : '📝 Ẩn ghi chú'}</button></header>` + yearBanner() + lyThuyet() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
     <button class="btn ghost" data-l="${lesson - 1}" ${lesson ? '' : 'hidden'}>← Bài trước</button>
     <button class="btn" data-l="${lesson + 1}" ${lesson < LESSONS.length - 1 ? '' : 'hidden'} ${lesson === 0 && !pl1Done() ? 'disabled' : ''}>${lesson === 0 && !pl1Done() ? 'Phân loại đúng hết để sang bài sau' : 'Bài sau →'}</button></div>`;
   // v46 (Ngo Ba Hung): the dau bai co tieu de trung ten bai thi an, tranh hai tieu de giong nhau
   const h2Dau = main.querySelector('.card > h2');
   if (h2Dau && h2Dau.textContent.trim() === LESSONS[lesson].t) h2Dau.hidden = true;
+  ganGhiPhan(main); main.classList.toggle('an-ghi', anGhi); // v47 (Ngo Ba Hung)
   renderSheet();
   restoreQuizzes();
   document.querySelector('#nav [aria-current=true]').scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -888,6 +917,7 @@ document.addEventListener('click', ev => {
     return;
   }
   if (t.dataset.ic) { icPick = t.dataset.ic; document.querySelectorAll('[data-ic]').forEach(b => b.setAttribute('aria-pressed', b === t)); document.getElementById('ic-detail').innerHTML = icDetail(); }
+  else if (t.id === 'an-ghi') { anGhi = !anGhi; render(); } // v47 (Ngo Ba Hung): an/hien ghi chu, luu cung tien do
   else if (t.dataset.chot) { chot = true; year = 2025; lesson = LESSONS.findIndex(l => l.t === 'Cộng ngang'); render(true); }
   else if (t.dataset.y) { year = +t.dataset.y; render(); }
   else if (t.dataset.pl) { pl1[t.dataset.pl] = t.dataset.plo; render(); saveProgress(); }
