@@ -156,6 +156,15 @@ tr.cr td:first-child { color: var(--co); font-weight: 600; padding-left: 44px; }
 /* Ghi chu */
 .note textarea { display: block; width: 100%; min-height: 100px; padding: 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); resize: vertical; }
 .note .hint { margin: 6px 0 0; font-size: .8125rem; color: var(--muc-nhat); }
+/* Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v47): ghi chu tung phan gap/mo, nut an/hien ghi chu */
+details.ghi-phan { margin: 16px 0 0; padding: 0 12px; border: 1px dashed var(--ke); border-radius: var(--bo); }
+details.ghi-phan > summary { padding: 8px 0; font-size: .875rem; font-weight: 600; color: var(--muc-nhat); cursor: pointer; }
+details.ghi-phan textarea { display: block; width: 100%; min-height: 80px; margin: 0 0 12px; padding: 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); resize: vertical; }
+.note details.ghi-phan { margin-top: 0; }
+.nut-ghi { margin-top: 8px; }
+.ly-thuyet > summary > .co { margin-left: auto; font-size: .8125rem; font-weight: 400; color: var(--muc-nhat); }
+.an-ghi details.ghi-phan, .an-ghi .card.note, .an-ghi .ly-thuyet > summary > .co { display: none; }
+/*--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v47) ---*/
 
 /* Trang thai, danh sach bat tat */
 .status { padding: 8px 12px; margin-bottom: 12px; border-radius: var(--bo); font-size: .9375rem; }
