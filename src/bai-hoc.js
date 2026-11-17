@@ -709,6 +709,48 @@ function ganGhiPhan(main) {
 const noteHtml = () => `<div class="card note">${ghiPhan(seenKey(lesson, year), 'Ghi chú chung của bài')}
   <p class="hint">${sess ? 'Ghi chú lưu theo tài khoản ' + esc(sess.email) + '.' : 'Ghi chú lưu trên trình duyệt này. Đăng nhập để lưu theo tài khoản.'}</p></div>`;
 //--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v47) ---*
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v50): ghim mot phan sang khung ben canh (dien thoai: khung duoi) de vua xem vua lam bai
+// Ghim mot phan mot luc; doi bai thi bo ghim. Khung chi chep de xem (inert), khong luu vao tien do.
+let ghimK = null, ghimBai = null, ghimObs, ghimTimer;
+const dsPhan = () => document.querySelectorAll('#main > .card:not(.note):not([id])');
+const nutGhim = i => `<button type="button" class="nut-ghim" data-ghim="${i}" aria-pressed="${ghimK === i}" title="Ghim phần này để vừa xem vừa làm bài">📌 ${ghimK === i ? 'Đang ghim' : 'Ghim'}</button>`;
+function ganGhim() {
+  if (ghimBai !== lesson) ghimK = null;
+  dsPhan().forEach((c, i) => {
+    const s = c.matches('details') ? c.querySelector(':scope > summary') : null, h = s || c.querySelector('h2:not([hidden]), h3');
+    c.dataset.ten = h ? (s ? s.firstChild.textContent : h.textContent).trim() : 'Phần ' + (i + 1);
+    s ? s.insertAdjacentHTML('beforeend', nutGhim(i)) : c.insertAdjacentHTML('afterbegin', nutGhim(i));
+  });
+  veGhim();
+}
+function veGhim() {
+  let a = document.getElementById('ghim');
+  if (!a) { document.querySelector('.layout').insertAdjacentHTML('beforeend', '<aside id="ghim" aria-label="Phần đang ghim" hidden></aside>'); a = document.getElementById('ghim'); }
+  if (ghimObs) ghimObs.disconnect();
+  const c = ghimK === null ? null : dsPhan()[ghimK];
+  if (!c) { ghimK = null; a.hidden = true; a.innerHTML = ''; document.body.classList.remove('co-ghim'); return; }
+  const b = c.cloneNode(true);
+  b.querySelectorAll('.ghi-phan, .nut-ghim, .co, [id]').forEach(e => e.classList.contains('ghi-phan') || e.classList.contains('nut-ghim') || e.classList.contains('co') ? e.remove() : e.removeAttribute('id'));
+  if (b.matches('details')) { b.open = true; b.querySelector(':scope > summary').hidden = true; }
+  const hd = b.querySelector('h2:not([hidden]), h3'); if (hd && hd.textContent.trim() === c.dataset.ten) hd.hidden = true; // tieu de da nam o dau khung
+  a.innerHTML = `<div class="ghim-dau"><strong>📌 ${esc(c.dataset.ten)}</strong><button type="button" id="bo-ghim" aria-label="Bỏ ghim">✕</button></div><div class="ghim-nd" inert></div>`;
+  a.querySelector('.ghim-nd').append(b);
+  a.hidden = false; document.body.classList.add('co-ghim');
+  // Phan dang ghim tu ve lai mot phan (bang, chon but toan) thi chep lai
+  ghimObs = new MutationObserver(lamMoiGhim);
+  ghimObs.observe(c, { subtree: true, childList: true, characterData: true });
+}
+const lamMoiGhim = () => { if (ghimK === null) return; clearTimeout(ghimTimer); ghimTimer = setTimeout(veGhim, 150); };
+document.addEventListener('change', lamMoiGhim);
+document.addEventListener('click', ev => {
+  const g = ev.target.closest('[data-ghim]'), bo = ev.target.closest('#bo-ghim');
+  if (!g && !bo) return;
+  ev.preventDefault(); // nut nam trong dong tieu de ly thuyet: khong gap/mo ly thuyet
+  ghimK = g && ghimK !== +g.dataset.ghim ? +g.dataset.ghim : null; ghimBai = lesson;
+  document.querySelectorAll('.nut-ghim').forEach(n => n.outerHTML = nutGhim(+n.dataset.ghim));
+  veGhim();
+});
+//--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v50) ---*
 function stateNow() {
   return { seen: [...seen], pl1, chot, year, lesson, scroll: window.scrollY, off: [...off], labOff: [...labOff], xoff: [...xoff], calV, pickAns, icAns, quizV, quizDone: [...quizDone], mcqAns, notes, anGhi }; // v47 (Ngo Ba Hung): them anGhi
 }
@@ -917,6 +959,7 @@ function render(focus) {
   const h2Dau = main.querySelector('.card > h2');
   if (h2Dau && h2Dau.textContent.trim() === LESSONS[lesson].t) h2Dau.hidden = true;
   ganGhiPhan(main); main.classList.toggle('an-ghi', anGhi); // v47 (Ngo Ba Hung)
+  ganGhim(); // v50 (Ngo Ba Hung)
   renderSheet();
   restoreQuizzes();
   document.querySelector('#nav [aria-current=true]').scrollIntoView({ block: 'nearest', inline: 'nearest' });

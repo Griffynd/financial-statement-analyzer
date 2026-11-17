@@ -219,6 +219,28 @@ details.chon[open] > summary { margin-bottom: 10px; border-bottom: 1px solid var
 .gt-as .gt-bar { background: var(--nen); } .gt-as .gt-bar i { background: var(--no); }
 .gt-sub { margin: 8px 0 0 14px; }
 
+/* Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v50): ghim phan sang khung ben canh */
+.nut-ghim { float: right; margin: 0 0 6px 12px; min-height: 28px; padding: 0 10px; border: 1px solid var(--ke); border-radius: var(--bo); background: var(--mat); color: var(--muc-nhat); font-size: .8125rem; font-weight: 600; cursor: pointer; }
+.nut-ghim:hover { border-color: var(--thong); color: var(--thong); }
+.nut-ghim[aria-pressed=true] { border-color: var(--thong); background: var(--thong-nhat); color: var(--thong); }
+summary > .nut-ghim { float: none; margin: 0 0 0 12px; font-size: .8125rem; }
+.an-ghi .ly-thuyet > summary > .nut-ghim { margin-left: auto; }
+/* Man hinh rong tren 1100px: khung ghim la cot thu ba; hep hon thi khung nam duoi man hinh de bai khong bi bop */
+@media (min-width: 1101px) { .co-ghim .layout { grid-template-columns: 280px minmax(0, 1fr) minmax(300px, 36vw); } }
+@media (min-width: 1101px) { .co-ghim main { padding-left: 28px; padding-right: 28px; } }
+#ghim { position: sticky; top: var(--cao-dau); height: calc(100vh - var(--cao-dau)); overflow: auto; padding: 0 20px 24px; border-left: 1px solid var(--ke); background: var(--nen); }
+#ghim[hidden] { display: none; }
+.ghim-dau { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; padding: 14px 0 10px; border-bottom: 1px solid var(--ke); background: var(--nen); color: var(--thong); }
+#bo-ghim { min-width: 32px; min-height: 32px; border: 0; background: none; font-size: 1.125rem; color: var(--muc-nhat); cursor: pointer; }
+#bo-ghim:hover { color: var(--thong); }
+.ghim-nd > .card { margin: 0; padding: 0; border: 0; background: none; }
+.ghim-nd > .card.ly-thuyet { padding: 0 0 0 12px; }
+@media (max-width: 1100px) {
+  #ghim { position: fixed; z-index: 25; left: 0; right: 0; bottom: 0; top: auto; height: 45vh; padding: 0 16px 16px; border-left: 0; border-top: 2px solid var(--thong); box-shadow: 0 -4px 12px rgb(0 0 0 / .12); }
+  .co-ghim main { padding-bottom: calc(45vh + 24px); }
+}
+/*--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v50) ---*/
+
 /* Man hinh hep */
 @media (max-width: 1100px) { main { padding: 28px 28px 56px; } }
 @media (max-width: 760px) {

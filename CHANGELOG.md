@@ -4,6 +4,7 @@ Từ v38, mỗi phiên bản là một git tag (`v38`, `v39`, ...). Bài học s
 
 | Bản | Ngày | Thay đổi |
 |---|---|---|
+| v50 | 2026-11-17 | Ghim phần: mỗi phần của bài có nút "📌 Ghim". Phần đã ghim hiện ở khung đứng yên bên phải (màn hình trên 1100px) hoặc khung dưới màn hình (máy nhỏ, điện thoại) để vừa xem vừa làm bài bên dưới. Khung chỉ để xem, tự cập nhật khi phần gốc đổi; bấm ✕ để bỏ ghim, đổi bài thì tự bỏ ghim. |
 | v49 | 2026-11-17 | Lý thuyết cơ bản dễ nhận ra chỗ quan trọng: ý chính in nghiêng có vạch màu bên trái; thuật ngữ đầu câu nguyên tắc (dạng "X là…", "X: …") in nghiêng và gạch chân; bút toán khung in nghiêng tên bút toán và chữ Nợ/Có; dòng căn cứ in nghiêng. |
 | v48 | 2026-11-17 | Bấm bài đang khóa hoặc năm 2025 đang khóa thì hiện thông báo ở đầu bài: cần học phần nào trước (bài 1 còn bao nhiêu công ty phân loại chưa đúng; năm 2025 cần chốt số 2024 ở bài 11), kèm nút đi tới bài đó. |
 | v47 | 2026-11-17 | Ghi chú theo từng phần: cuối mỗi phần của bài có mục "📝 Ghi chú phần này" gập/mở được; phần đã có ghi chú thì mở sẵn và ghi "(đã có)". Ghi chú cũ của cả bài giữ nguyên, đổi thành "Ghi chú chung của bài". Đầu bài có nút "Ẩn ghi chú / Hiện ghi chú", lưu cùng tiến độ. |
