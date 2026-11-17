@@ -11,13 +11,16 @@
 </head>
 <body>
 {{CONG_THAN}}
+<!-- v46 2026-11-16 (Ngo Ba Hung): thanh dau trang mot dong, nut mo danh sach bai tren dien thoai -->
+<a class="skip-link" href="#main">Đến nội dung bài</a>
 <div id="app">
-  <div class="masthead">
-    <h1>Học hợp nhất báo cáo tài chính</h1>
+  <header class="masthead">
+    <h1><a href="index.html"><span class="ten-dai">Học hợp nhất báo cáo tài chính</span><span class="ten-ngan">Học hợp nhất BCTC</span></a></h1>
     <div class="years" id="years" role="group" aria-label="Năm đang làm"></div>
     <form id="acct" hidden></form>
-  </div>
+  </header>
   <p class="notice" id="notice"></p>
+  <button type="button" id="nav-mo" aria-controls="nav" aria-expanded="false"></button>
   <div class="layout">
     <nav id="nav" aria-label="Các bài học"></nav>
     <main id="main" tabindex="-1"></main>

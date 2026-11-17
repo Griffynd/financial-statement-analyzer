@@ -404,12 +404,15 @@ const LY_THUYET = {
     c: 'Thông tư 202/2014/TT-BTC.',
   },
 };
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): khung ly thuyet gap duoc, giu trang thai khi chuyen bai
+let ltMo = true;
 function lyThuyet() {
   const x = LY_THUYET[LESSONS[lesson].t];
   if (!x) return '';
-  return `<div class="card ly-thuyet"><h2>Lý thuyết cơ bản</h2>
+  return `<details class="card ly-thuyet" ${ltMo ? 'open' : ''}><summary>Lý thuyết cơ bản</summary>
     <p class="lt-y">${x.y}</p>
     <h3>Nguyên tắc</h3><ul>${x.n.map(s => `<li>${s}</li>`).join('')}</ul>
     ${x.b ? `<h3>Bút toán khung</h3><ul class="lt-bt">${x.b.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
-    <p class="lt-c">Căn cứ: ${x.c}</p></div>`;
+    <p class="lt-c">Căn cứ: ${x.c}</p></details>`;
 }
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*

@@ -31,10 +31,16 @@ function tableUnit(head, rows) {
   if (!rows.some(r => r.some(c => typeof c === 'number'))) return '';
   return UNIT(UNIT_RIENG[head[0]] || 'triệu VND');
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): cot co chu dai thi ca cot (ke ca o chu ngan va tieu de) can trai, khong lech kieu trong mot cot
 function table(head, rows, totalLast) {
-  return `${tableUnit(head, rows)}<div class="scroll"><table><thead><tr>${head.map((h, i) => `<th class="${i ? '' : 'l'}">${h}</th>`).join('')}</tr></thead><tbody>${
-    rows.map((r, i) => `<tr class="${totalLast && i === rows.length - 1 ? 'total' : ''}">${r.map((c, j) => j ? `<td${typeof c === 'string' && c.length > 14 && c[0] !== '<' ? ' class="t"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>` : `<td class="l">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const dai = c => typeof c === 'string' && c.length > 14 && c[0] !== '<';
+  const so = c => typeof c === 'number' || (typeof c === 'string' && /^[\d.,%()×x+\-−–\s/]*$/.test(c));
+  const cotChu = head.map((h, j) => j && (rows.some(r => dai(r[j])) || rows.filter(r => typeof r[j] === 'string' && r[j][0] !== '<' && !so(r[j])).length > rows.filter(r => so(r[j]) && r[j] !== '–').length));
+  const laChu = (c, j) => typeof c === 'string' && c[0] !== '<' && (dai(c) || (cotChu[j] && c !== '–'));
+  return `${tableUnit(head, rows)}<div class="scroll"><table><thead><tr>${head.map((h, i) => `<th class="${i ? (cotChu[i] ? 't' : '') : 'l'}">${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map((r, i) => `<tr class="${totalLast && i === rows.length - 1 ? 'total' : ''}">${r.map((c, j) => j ? `<td${laChu(c, j) ? ' class="t"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>` : `<td class="l">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 const IC_MUC = 10;
 const IC = [
   { id: 'a', thu: 'B', tra: 'M', pt: 200, ptr: 180, loai: 'Bút toán', vd: 'Đại An chuyển tiền 20 ngày cuối năm, Cát Tường chưa nhận.', bt: [['Nợ 113 – Tiền đang chuyển', 20, 0], ['Có 136 – Phải thu nội bộ', 0, 20]], ptS: 180, ptrS: 180 },
@@ -124,7 +130,7 @@ function groupTree() {
   });
   return `<div class="gt-root"><strong>Tập đoàn Đại An</strong><small>Công ty mẹ · ${D.linh_vuc ? D.linh_vuc.M : ''}</small></div><div class="gt-stem"></div>
     <div class="gt-groups"><div><h3>Công ty con <small>Đường liền: hợp nhất toàn bộ</small></h3>${subs.map((e, i) => row(e, 'M', i === subs.length - 1)).join('')}</div>
-    <div><h3>Công ty liên kết <small>Đường đứt vàng: phương pháp vốn chủ, không cộng ngang</small></h3>${as.map((e, i) => row(e, 'M', i === as.length - 1)).join('')}</div></div>
+    <div><h3>Công ty liên kết <small>Đường đứt xanh: phương pháp vốn chủ, không cộng ngang</small></h3>${as.map((e, i) => row(e, 'M', i === as.length - 1)).join('')}</div></div>
     <p style="margin-top:12px">Số trên đường là tỷ lệ đơn vị đó trực tiếp nắm, đường càng đậm thì tỷ lệ càng cao. Thanh trong ô là tổng biểu quyết của tập đoàn. Ô đỏ đường đứt là <strong>đầu tư chéo</strong>: một đơn vị khác trong tập đoàn cũng nắm cùng công ty đó.</p>
     <h3 style="margin-top:14px">Các khoản đầu tư chéo</h3>${table(['Công ty', 'Đơn vị nắm và tài khoản đang ghi', 'Tổng biểu quyết', 'Lợi ích của Đại An', 'Trên tập đoàn'], crossRows)}
     <p style="margin-top:10px">Biểu quyết là phép cộng, lợi ích nhân theo chuỗi. Khoản nào đang ghi 228 thì được phân loại lại ở bài Đầu tư và LTTM, rồi tính NCI theo chuỗi ở bài NCI. Chi tiết cách làm ở bài Tính tỷ lệ và phân loại lại.</p>`;
@@ -294,7 +300,7 @@ const LESSONS = [
       ${box('Theo VAS 07', table(['Việc', 'Quy định'], [['Ảnh hưởng đáng kể', 'Từ 20% quyền biểu quyết, trừ khi có quy định hoặc thỏa thuận khác; xét cả đại diện HĐQT, tham gia chính sách, giao dịch quan trọng'], ['BCTC riêng', 'Giá gốc'], ['Hợp nhất', 'Vốn chủ, trừ khi dự kiến thanh lý dưới 12 tháng hoặc bị hạn chế khắt khe dài hạn'], ['Lỗ vượt giá trị đầu tư', 'Ghi đến 0 rồi dừng, trừ khi có nghĩa vụ trả thay; lãi sau đó chỉ ghi khi đã bù hết phần lỗ chưa ghi'], ['Báo cáo khác ngày', 'Điều chỉnh các giao dịch và sự kiện trọng yếu trong khoảng lệch'], ['Trình bày', 'Khoản mục dài hạn riêng; phần lãi, lỗ là khoản mục riêng; danh sách liên kết và tỷ lệ']]) + '<p style="margin-top:10px">VAS 07 đoạn 12 nói phân bổ dần chênh lệch giữa giá gốc và phần sở hữu; TT202 Điều 62 nói LTTM của liên kết không phân bổ. Bài theo TT202, người học nên biết hai nguồn nói khác nhau.</p>')}
       ${quiz('a-as', 'Liên kết lỗ 5.000, nhà đầu tư giữ 30%, giá trị đầu tư đang 1.200, không có nghĩa vụ trả thay. Ghi nhận phần lỗ bao nhiêu?', 1200, '30% × 5.000 = 1.500 nhưng chỉ ghi đến khi giá trị đầu tư bằng 0.')}` },
   { t: 'Thực hành bảng hợp nhất', r: () => `<div class="card"><h2>Bảng hợp nhất năm ${year}</h2>
-      <p>Tắt hoặc bật từng bút toán để xem số hợp nhất thay đổi. Dòng được tô màu là dòng có điều chỉnh.</p>
+      <p>Tắt hoặc bật từng bút toán để xem số hợp nhất thay đổi. Ô được tô màu là số điều chỉnh.</p>
       <p>Bảng xếp cột như sheet Input Data của RPT-001 (bảng hợp nhất tổng trong bộ hồ sơ làm việc): <strong>Preliminary</strong> là cộng ngang số các đơn vị, <strong>AJE</strong> là bút toán điều chỉnh lấy từ từng WP khoản mục (chỉ mục ghi cạnh tên bút toán), <strong>Final</strong> = Preliminary + AJE.</p>
       <button class="btn ghost" data-all="off">Tắt hết</button><button class="btn ghost" data-all="on">Bật hết</button>
       <details class="chon" ${chonMo ? 'open' : ''}><summary>Chọn từng bút toán (${entries().length})</summary><div class="toggles">${entries().map(e => `<label><input type="checkbox" data-e="${e.id}" ${off.has(year + e.id) ? '' : 'checked'}> <span>${e.id}. ${e.tieu_de}</span></label>`).join('')}</div></details>
@@ -633,7 +639,7 @@ function renderSheet() {
     tot += v;
     if (['136', '336', '1283NB', '341NB', '1121TV', '341TV', '221'].includes(a.ma) && Math.abs(v) > 1e-6) left.push(a.ten);
     if (!base && !dr && !cr) return '';
-    return `<tr class="${dr || cr ? 'changed' : ''}"><td class="l">${a.ma} – ${a.ten}</td><td>${fmt(base)}</td><td>${fmt(dr)}</td><td>${fmt(cr)}</td><td>${fmt(v)}</td></tr>`;
+    return `<tr><td class="l">${a.ma} – ${a.ten}</td><td>${fmt(base)}</td><td${dr ? ' class="adj"' : ''}>${fmt(dr)}</td><td${cr ? ' class="adj"' : ''}>${fmt(cr)}</td><td>${fmt(v)}</td></tr>`; // v46 (Ngo Ba Hung): to vang o so bi dieu chinh, khong to ca dong
   }).join('');
   el.innerHTML = `<div class="status ${left.length ? 'warn' : 'ok'}" role="status">${left.length ? 'Còn số dư nội bộ chưa loại trừ: ' + left.join(', ') + '.' : 'Không còn số dư đầu tư và nội bộ.'}</div>
     ${UNIT('triệu VND')}<div class="scroll"><table><thead><tr><th class="l">Tài khoản</th><th>Preliminary<br><small>cộng ngang</small></th><th>AJE Nợ</th><th>AJE Có</th><th>Final<br><small>hợp nhất</small></th></tr></thead>
@@ -643,8 +649,9 @@ function renderSheet() {
 function markEntries() {
   document.querySelectorAll('#main td:first-child').forEach(td => {
     const t = td.textContent.trim();
-    if (/^Nợ\s/.test(t)) td.parentElement.classList.add('dr');
-    else if (/^Có\s/.test(t)) td.parentElement.classList.add('cr');
+    // v46 (Ngo Ba Hung): chi dong but toan (No/Co + so hieu tai khoan), khong bat cau chu thuong bat dau bang "Co"
+    if (/^Nợ\s+[0-9A-Z]/.test(t)) td.parentElement.classList.add('dr');
+    else if (/^Có\s+[0-9A-Z]/.test(t)) td.parentElement.classList.add('cr');
   });
 }
 new MutationObserver(markEntries).observe(document.getElementById('main'), { childList: true, subtree: true });
@@ -741,7 +748,9 @@ function drawAcct() {
   const f = document.getElementById('acct');
   if (!SB_ON || !sess) { f.hidden = true; return; }
   f.hidden = false;
-  f.innerHTML = `<span>${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button><span class="msg" role="status">${esc(cloudMsg)}</span>`;
+  // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): trang thai luu, email, nut tren mot dong
+  f.innerHTML = `<span class="msg" role="status">${esc(cloudMsg)}</span><span class="email">${esc(sess.email)}</span><button type="button" class="btn ghost" id="logout">Đăng xuất</button>`;
+  //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 }
 function applyState(p) {
   seen.clear(); off.clear(); labOff.clear(); xoff.clear(); quizDone.clear();
@@ -813,17 +822,59 @@ function loadProgress() {
     return applyState(p);
   } catch (e) { return 0; }
 }
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): nhom bai cho thanh ben; bai chua co ten nhom thuoc nhom cua bai truoc, bai dau la Co ban
+function nhomBai() {
+  const ds = [];
+  LESSONS.forEach((l, i) => { if (!i || l.g) ds.push({ ten: l.g || 'Cơ bản', bai: [] }); ds[ds.length - 1].bai.push(i); });
+  return ds;
+}
+const nhomMo = {};
+// Chi ghi khi nguoi hoc bam vao ten nhom; nhom tu mo vi chua bai dang hoc thi khong ghi
+document.addEventListener('click', ev => { const sm = ev.target.closest('.nhom > summary'); if (sm) nhomMo[sm.parentElement.dataset.nhom] = !sm.parentElement.open; });
+document.addEventListener('toggle', ev => { if (ev.target.classList && ev.target.classList.contains('ly-thuyet')) ltMo = ev.target.open; }, true);
+// Dien thoai: danh sach bai mo thanh tam phu tu nut "Bai N tren 37"
+function dongNav(traVe) {
+  const n = document.getElementById('nav'), mo = document.getElementById('nav-mo');
+  if (!n.classList.contains('mo')) return;
+  n.classList.remove('mo'); mo.setAttribute('aria-expanded', 'false');
+  if (traVe) mo.focus();
+}
+document.getElementById('nav-mo').addEventListener('click', () => {
+  const n = document.getElementById('nav'), mo = document.getElementById('nav-mo');
+  if (n.classList.contains('mo')) return dongNav();
+  n.classList.add('mo'); mo.setAttribute('aria-expanded', 'true');
+  const c = n.querySelector('[aria-current=true]'); c.scrollIntoView({ block: 'center' }); c.focus();
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') dongNav(true); });
+//--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
 function render(focus) {
-  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'disabled title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025 (chưa mở)' : y}</button>`).join('');
-  document.getElementById('nav').innerHTML = LESSONS.map((l, i) => `${l.g ? `<div class="group">${l.g}</div>` : ''}<button type="button" data-l="${i}" aria-current="${i === lesson}"${i && !pl1Done() ? ' class="locked" aria-disabled="true" title="Phân loại xong ở bài 1 để mở"' : ''}>${i + 1}. ${l.t}</button>`).join('') + `<p class="saved">${sess ? 'Tiến độ lưu theo tài khoản.' : 'Tiến độ tự lưu trên trình duyệt này.'}</p><button type="button" id="reset">Xóa tiến độ đã lưu</button>`;
-  const main = document.getElementById('main');
+  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'disabled title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025<span class="nam-khoa"> (chưa mở)</span>' : y}</button>`).join(''); // v46 (Ngo Ba Hung): dien thoai an chu "(chua mo)" de khong tran
+  // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): thanh ben chia nhom gap duoc, dau da hoc, thanh tien do; dau bai co vi tri va ten bai
   seen.add(seenKey(lesson, year));
-  main.innerHTML = lyThuyet() + yearBanner() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
+  const need = needKeys(), xong = need.filter(k => seen.has(k)).length;
+  const nhom = nhomBai(), cua = nhom.find(g => g.bai.includes(lesson));
+  const nutBai = i => {
+    const khoa = i && !pl1Done(), da = seen.has(seenKey(i, year)), dang = i === lesson;
+    const dau = khoa ? '🔒<span class="an">đang khóa</span>' : dang ? '●<span class="an">đang mở</span>' : da ? '✓<span class="an">đã học</span>' : '';
+    return `<button type="button" data-l="${i}" aria-current="${dang}"${khoa ? ' class="locked" aria-disabled="true" title="Phân loại xong ở bài 1 để mở"' : ''}><span class="dau" aria-hidden="${!dau}">${dau}</span><span>${i + 1}. ${LESSONS[i].t}</span></button>`;
+  };
+  document.getElementById('nav').innerHTML = `<div class="tien-do"><p>Tiến độ <span>${xong}/${need.length}</span></p><div class="vach" role="progressbar" aria-label="Tiến độ học" aria-valuemin="0" aria-valuemax="${need.length}" aria-valuenow="${xong}"><i style="width:${need.length ? xong / need.length * 100 : 0}%"></i></div></div>`
+    + nhom.map(g => `<details class="nhom" data-nhom="${g.ten}" ${g === cua || nhomMo[g.ten] ? 'open' : ''}><summary><span class="ten">${g.ten}</span><span class="so">${g.bai.filter(i => seen.has(seenKey(i, year))).length}/${g.bai.length}</span></summary>${g.bai.map(nutBai).join('')}</details>`).join('')
+    + `<p class="saved">${sess ? 'Tiến độ lưu theo tài khoản.' : 'Tiến độ tự lưu trên trình duyệt này.'}</p><button type="button" id="reset">Xóa tiến độ đã lưu</button>`;
+  const mo = document.getElementById('nav-mo');
+  mo.innerHTML = `<span>Bài ${lesson + 1} trên ${LESSONS.length}: ${LESSONS[lesson].t}</span><span aria-hidden="true">▾</span>`;
+  dongNav();
+  const main = document.getElementById('main');
+  main.innerHTML = `<header class="bai-dau"><p class="bai-vi">Bài ${lesson + 1} trên ${LESSONS.length} · ${cua.ten}</p><h2 class="bai-ten">${LESSONS[lesson].t}</h2></header>` + yearBanner() + lyThuyet() + LESSONS[lesson].r() + mcqHtml() + noteHtml() + (lesson === LESSONS.length - 1 ? excelBox() : '') + `<div class="pager">
     <button class="btn ghost" data-l="${lesson - 1}" ${lesson ? '' : 'hidden'}>← Bài trước</button>
     <button class="btn" data-l="${lesson + 1}" ${lesson < LESSONS.length - 1 ? '' : 'hidden'} ${lesson === 0 && !pl1Done() ? 'disabled' : ''}>${lesson === 0 && !pl1Done() ? 'Phân loại đúng hết để sang bài sau' : 'Bài sau →'}</button></div>`;
+  // v46 (Ngo Ba Hung): the dau bai co tieu de trung ten bai thi an, tranh hai tieu de giong nhau
+  const h2Dau = main.querySelector('.card > h2');
+  if (h2Dau && h2Dau.textContent.trim() === LESSONS[lesson].t) h2Dau.hidden = true;
   renderSheet();
   restoreQuizzes();
   document.querySelector('#nav [aria-current=true]').scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
   if (focus) { main.focus({ preventScroll: true }); window.scrollTo(0, 0); }
 }
 document.addEventListener('click', ev => {
@@ -907,7 +958,7 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('change', saveProgress);
 window.addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(saveProgress, 300); }, { passive: true });
-document.getElementById('notice').textContent = D.ghi_chu;
+document.getElementById('notice').textContent = D.ghi_chu.replace(/^SỐ LIỆU GIẢ LẬP/, 'Số liệu giả lập'); // v46 (Ngo Ba Hung): bo viet hoa toan bo
 const savedScroll = loadProgress();
 drawAcct();
 render();
