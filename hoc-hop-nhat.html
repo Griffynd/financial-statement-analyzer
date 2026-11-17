@@ -32,8 +32,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .years button { min-height: 32px; padding: 0 14px; font-size: .875rem; font-weight: 600; border: 0; background: transparent; color: var(--tren-thong-nhat); cursor: pointer; }
 .years button + button { border-left: 1px solid var(--tren-thong-nhat); }
 .years button[aria-pressed=true] { background: var(--tren-thong); color: var(--thong); }
-.years button:not([aria-pressed=true]):not(:disabled):hover { background: var(--thong-dam); color: var(--tren-thong); }
-.years button:disabled { cursor: not-allowed; opacity: .6; }
+.years button:not([aria-pressed=true]):not(:disabled):not([aria-disabled=true]):hover { background: var(--thong-dam); color: var(--tren-thong); }
+.years button:disabled, .years button[aria-disabled=true] { cursor: not-allowed; opacity: .6; } /* v48 (Ngo Ba Hung): nam khoa van bam duoc de hien thong bao */
+/* Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v48): thong bao phan dang khoa */
+.bao-khoa { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 20px; padding: 12px 16px; border: 1px solid var(--ke); border-left: 4px solid var(--thong); border-radius: var(--bo); background: var(--mat); }
+.bao-khoa p { flex: 1 1 280px; margin: 0; }
+/*--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v48) ---*/
 #acct { margin-left: auto; display: flex; align-items: center; gap: 14px; min-width: 0; font-size: .875rem; color: var(--tren-thong-nhat); }
 #acct[hidden] { display: none; }
 #acct .msg, #acct .email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -1732,8 +1736,25 @@ document.getElementById('nav-mo').addEventListener('click', () => {
 });
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape') dongNav(true); });
 //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v48): bam bai hoac nam dang khoa thi bao can hoc phan nao truoc, kem nut di toi
+function baoKhoa(nd, l) {
+  dongNav();
+  const cu = document.querySelector('#main .bao-khoa'); if (cu) cu.remove();
+  const nut = l !== undefined && l !== lesson ? `<button type="button" class="btn" data-l="${l}">Đến bài ${l + 1}: ${LESSONS[l].t}</button>` : '';
+  document.querySelector('#main .bai-dau').insertAdjacentHTML('afterend', `<div class="bao-khoa" role="alert"><p>🔒 ${nd}</p>${nut}</div>`);
+  document.querySelector('#main .bao-khoa').scrollIntoView({ block: 'center' });
+}
+const khoaBai = i => {
+  const con = plKeys().filter(e => pl1[e] !== plRight(e)).length;
+  baoKhoa(`Bài ${i + 1} đang khóa. Hoàn thành bài 1 "${LESSONS[0].t}" trước: phân loại đúng hết ${plKeys().length} công ty (còn ${con} công ty chưa đúng) để mở các bài từ bài 2 trở đi.`, 0);
+};
+const khoaNam = () => {
+  const b = LESSONS.findIndex(l => l.t === BASIC_LAST);
+  baoKhoa(`Năm 2025 đang khóa. Học hết phần năm 2024 đến bài ${b + 1} "${BASIC_LAST}", rồi bấm "Chốt số 2024" ở cuối bài đó để mở năm 2025.`, b);
+};
+//--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v48) ---*
 function render(focus) {
-  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'disabled title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025<span class="nam-khoa"> (chưa mở)</span>' : y}</button>`).join(''); // v46 (Ngo Ba Hung): dien thoai an chu "(chua mo)" de khong tran
+  document.getElementById('years').innerHTML = YEARS.map(y => `<button type="button" data-y="${y}" aria-pressed="${y === year}" ${y === 2025 && !chot ? 'aria-disabled="true" title="Chốt số 2024 ở bài Báo cáo hợp nhất để mở năm 2025"' : ''}>${y === 2025 && !chot ? '2025<span class="nam-khoa"> (chưa mở)</span>' : y}</button>`).join(''); // v46 (Ngo Ba Hung): dien thoai an chu "(chua mo)" de khong tran
   // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): thanh ben chia nhom gap duoc, dau da hoc, thanh tien do; dau bai co vi tri va ten bai
   seen.add(seenKey(lesson, year));
   const need = needKeys(), xong = need.filter(k => seen.has(k)).length;
@@ -1776,9 +1797,9 @@ document.addEventListener('click', ev => {
   if (t.dataset.ic) { icPick = t.dataset.ic; document.querySelectorAll('[data-ic]').forEach(b => b.setAttribute('aria-pressed', b === t)); document.getElementById('ic-detail').innerHTML = icDetail(); }
   else if (t.id === 'an-ghi') { anGhi = !anGhi; render(); } // v47 (Ngo Ba Hung): an/hien ghi chu, luu cung tien do
   else if (t.dataset.chot) { chot = true; year = 2025; lesson = LESSONS.findIndex(l => l.t === 'Cộng ngang'); render(true); }
-  else if (t.dataset.y) { year = +t.dataset.y; render(); }
+  else if (t.dataset.y) { if (t.getAttribute('aria-disabled') === 'true') return khoaNam(); year = +t.dataset.y; render(); } // v48 (Ngo Ba Hung)
   else if (t.dataset.pl) { pl1[t.dataset.pl] = t.dataset.plo; render(); saveProgress(); }
-  else if (t.dataset.l !== undefined) { if (+t.dataset.l > 0 && !pl1Done()) return; lesson = +t.dataset.l; render(true); }
+  else if (t.dataset.l !== undefined) { if (+t.dataset.l > 0 && !pl1Done()) return khoaBai(+t.dataset.l); lesson = +t.dataset.l; render(true); }
   else if (t.dataset.all) { entries().forEach(e => t.dataset.all === 'off' ? off.add(year + e.id) : off.delete(year + e.id)); render(); }
   else if (t.dataset.quiz) {
     quizDone.add(t.dataset.quiz);
