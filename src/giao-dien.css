@@ -99,6 +99,11 @@ nav button.locked:hover { background: transparent; }
 .ly-thuyet .lt-y { font-weight: 600; }
 .ly-thuyet h3 { font-size: .9375rem; margin: 14px 0 4px; color: var(--muc); }
 .ly-thuyet .lt-c { font-size: .8125rem; color: var(--muc-nhat); margin: 12px 0 0; }
+/* Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v49): y chinh va can cu in nghieng; thuat ngu nghieng + gach chan */
+.ly-thuyet .lt-y { font-style: italic; padding-left: 12px; border-left: 3px solid var(--thong); }
+.ly-thuyet .lt-c { font-style: italic; }
+.ly-thuyet em.tn { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+/*--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v49) ---*/
 
 /* Bang */
 .scroll { overflow-x: auto; }
