@@ -406,13 +406,24 @@ const LY_THUYET = {
 };
 // Sua boi Ngo Ba Hung - Ngay: 2026-11-16 (v46): khung ly thuyet gap duoc, giu trang thai khi chuyen bai
 let ltMo = true;
+// Sua boi Ngo Ba Hung - Ngay: 2026-11-17 (v49): nhan chu trong ly thuyet theo mau cau
+// Thuat ngu dau cau ("X: ...", "X là ...", "X gồm ...", "X = ...") thi nghieng + gach chan; chi lay cum ngan de tranh nhan ca menh de
+const nhanTN = s => {
+  const m = s.match(/^([^.:;,()=]+?)(: | = | là | gồm )/);
+  const toiDa = m && (m[2] === ': ' ? 8 : 5);
+  if (!m || m[1].split(' ').length > toiDa || / chỉ$/.test(m[1])) return s; // "Phan tram chi la...": khong phai thuat ngu
+  return `<em class="tn">${m[1]}</em>${s.slice(m[1].length)}`;
+};
+// But toan khung: nhan phan ten but toan truoc dau ":" va chu No/Co
+const nhanBT = s => s.replace(/^([^:]+):/, '<em>$1</em>:').replace(/(^|\s)(Nợ|Có)(?=\s)/g, '$1<em>$2</em>');
+//--- Ket thuc sua Ngo Ba Hung 2026-11-17 (v49) ---*
 function lyThuyet() {
   const x = LY_THUYET[LESSONS[lesson].t];
   if (!x) return '';
   return `<details class="card ly-thuyet" ${ltMo ? 'open' : ''}><summary>Lý thuyết cơ bản</summary>
     <p class="lt-y">${x.y}</p>
-    <h3>Nguyên tắc</h3><ul>${x.n.map(s => `<li>${s}</li>`).join('')}</ul>
-    ${x.b ? `<h3>Bút toán khung</h3><ul class="lt-bt">${x.b.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
+    <h3>Nguyên tắc</h3><ul>${x.n.map(s => `<li>${nhanTN(s)}</li>`).join('')}</ul>
+    ${x.b ? `<h3>Bút toán khung</h3><ul class="lt-bt">${x.b.map(s => `<li>${nhanBT(s)}</li>`).join('')}</ul>` : ''}
     <p class="lt-c">Căn cứ: ${x.c}</p></details>`;
 }
 //--- Ket thuc sua Ngo Ba Hung 2026-11-16 (v46) ---*
