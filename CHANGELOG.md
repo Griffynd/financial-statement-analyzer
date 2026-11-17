@@ -4,6 +4,7 @@ Từ v38, mỗi phiên bản là một git tag (`v38`, `v39`, ...). Bài học s
 
 | Bản | Ngày | Thay đổi |
 |---|---|---|
+| v48 | 2026-11-17 | Bấm bài đang khóa hoặc năm 2025 đang khóa thì hiện thông báo ở đầu bài: cần học phần nào trước (bài 1 còn bao nhiêu công ty phân loại chưa đúng; năm 2025 cần chốt số 2024 ở bài 11), kèm nút đi tới bài đó. |
 | v47 | 2026-11-17 | Ghi chú theo từng phần: cuối mỗi phần của bài có mục "📝 Ghi chú phần này" gập/mở được; phần đã có ghi chú thì mở sẵn và ghi "(đã có)". Ghi chú cũ của cả bài giữ nguyên, đổi thành "Ghi chú chung của bài". Đầu bài có nút "Ẩn ghi chú / Hiện ghi chú", lưu cùng tiến độ. |
 | v46 | 2026-11-16 | Thiết kế lại giao diện cả hai trang: một bộ màu và chữ dùng chung, thanh đầu trang giống nhau. Trang bài học: thanh bên chia nhóm gập được, có dấu bài đã học và thanh tiến độ; đầu bài ghi "Bài N trên 37", lý thuyết gập được; bảng hợp nhất bài 10 chỉ tô ô số điều chỉnh; điện thoại có nút mở danh sách bài. Trang đầu: khối học lên trên với nút "Học tiếp bài N", công cụ phân tích BCTC ở dưới. Bảng: cột chữ căn trái cả cột, cột đầu đứng yên khi cuộn ngang, bảng nhiều cột (bài 35) cột tài khoản rộng hơn; không còn tô màu Nợ/Có nhầm cho dòng chữ bắt đầu bằng "Có"; thẻ đầu bài trùng tên bài thì ẩn. Bàn phím: link "Đến nội dung bài", viền tiêu điểm nút năm không bị cắt. |
 | v45 | 2026-11-16 | Trang đầu: nút Đăng xuất nằm trong thanh tiêu đề, không còn nổi đè lên dòng "chưa có dữ liệu" trên màn hình máy tính. |
