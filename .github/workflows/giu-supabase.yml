@@ -5,7 +5,7 @@ name: Giu Supabase hoat dong
 
 on:
   schedule:
-    - cron: "0 1 * * 1,4"   # 08:00 gio VN thu Hai va thu Nam
+    - cron: "17 1 * * *"    # 08:17 gio VN hang ngay (2026-11-23 Ngo Ba Hung: GitHub bo lich thu Hai 23/11, chay hang ngay cho chac; phut 17 tranh gio cao diem :00)
   workflow_dispatch:          # cho phep bam chay tay de thu
 
 jobs:
