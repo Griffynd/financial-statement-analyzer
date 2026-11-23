@@ -20,6 +20,6 @@ jobs:
           curl -fsS "$SB_URL/auth/v1/health" -H "apikey: $SB_KEY"
           echo
           # Sua boi Ngo Ba Hung - Ngay: 2026-11-23: goi ham ping() de GHI vao database (chi doc thi Supabase van canh bao tam dung)
-          KQ=$(curl -sS --fail-with-body -X POST "$SB_URL/rest/v1/rpc/ping" -H "apikey: $SB_KEY" -H "Content-Type: application/json" -d '{}')
+          KQ=$(curl -sS --fail-with-body -X POST "$SB_URL/rest/v1/rpc/ping" -H "apikey: $SB_KEY" -H "Content-Type: application/json" -d '{}') || { echo "Loi tu Supabase: $KQ"; exit 1; }
           echo "ping: $KQ"
           [ "$KQ" != "null" ] || { echo "Bang keepalive khong co dong nao"; exit 1; }
